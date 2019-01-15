@@ -1,0 +1,131 @@
+import numpy as np
+import os
+import cv2
+from sklearn.externals import joblib
+import matplotlib.pyplot as plt
+from scipy.spatial import procrustes
+
+def read_bbox(path):
+    with open(path) as f:
+        l = f.readline().strip('\n').split(' ')
+    return [int(ll) for ll in l]
+
+
+def read_landmarks(path):
+    landmarks = []
+    with open(path) as f:
+        n = int(f.readline())
+        for i in range(n):
+            pt = f.readline().strip('\n').split(' ')
+            pt = [int(float(p)) for p in pt]
+            landmarks.append(pt)
+    return np.array(landmarks, dtype=np.float32)
+
+
+def procrustes(x, y):
+    """
+    x->y
+    :param X:
+    :param Y:
+    :return:
+    """
+    u, sigma, vt = np.linalg.svd(x)
+    s = np.zeros((106, 3), dtype=np.float32)
+    for i in range(sigma.shape[0]):
+        s[i, i] = 1/sigma[i]
+    xp = vt.T @ s.T @ u.T
+    return xp@y
+
+
+def main():
+    root = '/home/yqi/data/icme'
+
+    lamdmark_dir = os.path.join(root, 'data/landmark')
+    image_dir = os.path.join(root, 'data/picture')
+    bbox_dir = os.path.join(root, 'bbox')
+
+    try:
+        filenames = joblib.load('cache/filenames.pkl')
+        norm_landmarks = joblib.load('cache/norm_landmarks.pkl')
+        mean_landmarks = joblib.load('cache/mean_landmarks.pkl')
+        bboxes = joblib.load('cache/bboxes.pkl')
+    except:
+
+        filenames = os.listdir(image_dir)
+        norm_landmarks = []
+        bboxes = []
+        for filename in filenames:
+            landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
+            bbox_path = os.path.join(bbox_dir, filename + '.rect')
+
+            bbox = read_bbox(bbox_path)
+            minx, miny, maxx, maxy = bbox
+            w = float(maxx - minx)
+            h = float(maxy - miny)
+            landmarks = read_landmarks(landmark_path)
+            landmarks -= [minx, miny]
+            landmarks[:, 0] = landmarks[:, 0] / w
+            landmarks[:, 1] = landmarks[:, 1] / h
+            norm_landmarks.append(landmarks)
+            bboxes.append(bbox)
+        norm_landmarks = np.stack(norm_landmarks, axis=0)
+        mean_landmarks = np.mean(norm_landmarks, axis=0)
+        joblib.dump(norm_landmarks, 'cache/norm_landmarks.pkl', compress=3)
+        joblib.dump(mean_landmarks, 'cache/mean_landmarks.pkl', compress=3)
+        joblib.dump(filenames, 'cache/filenames.pkl', compress=3)
+        joblib.dump(bboxes, 'cache/bboxes.pkl', compress=3)
+    # for i in range(106):
+    #     plt.scatter(mean_landmarks[i, 0], mean_landmarks[i, 1])
+    # plt.show()
+    try:
+        transform_matrix = joblib.load('cache/transform_matrix.pkl')
+        aligned = joblib.load('cache/aligned.pkl')
+    except:
+        transform_matrix = []
+        aligned = []
+        for i, filename in enumerate(filenames):
+            curr = norm_landmarks[i, :]
+            one = np.ones(shape=(106, 1))
+            curr = np.concatenate((curr, one), axis=1)
+            t = procrustes(curr, mean_landmarks)
+            transform_matrix.append(t)
+            aligned.append(np.reshape(curr@t, (-1)))
+        joblib.dump(transform_matrix, 'cache/transform_matrix.pkl', compress=3)
+        joblib.dump(aligned, 'cache/aligned.pkl', compress=3)
+    temp = (aligned - np.mean(aligned, axis=0))
+    covariance = 1.0 / len(aligned) * temp.T.dot(temp)
+    U, S, V = np.linalg.svd(covariance)
+    pc = temp.dot(U[:, 0])
+
+    plt.hist(pc,bins=11)
+    plt.show()
+    for i, filename in enumerate(filenames):
+        img_path = os.path.join(image_dir, filename)
+        if pc[i] > 0.793:
+            n = '1'
+        elif pc[i] > 0.615:
+            n = '2'
+        elif pc[i] > 0.44:
+            n = '3'
+        elif pc[i] > 0.26:
+            n = '4'
+        elif pc[i] > 0.087:
+            n = '5'
+        elif pc[i] > -0.0913:
+            n = '6'
+        elif pc[i] > -0.264:
+            n = '7'
+        elif pc[i] > -0.448:
+            n = '8'
+        elif pc[i] > -0.62:
+            n = '9'
+        elif pc[i] > -0.79:
+            n = '10'
+        else:
+            n = '11'
+        cmd = 'ln -s %s /data/s/%s/%s'%(img_path, n, filename)
+        os.system(cmd)
+
+
+if __name__ == '__main__':
+    main()
