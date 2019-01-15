@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from layers.module.wing_loss import WingLoss
+from layers.module.gyro_loss import GyroLoss
 
 
 if __name__ == '__main__':
@@ -11,12 +12,12 @@ if __name__ == '__main__':
     N = 1000
     x = np.ones(shape=(N))
     y = 20 * np.random.randn(N) + x
-    criterion = WingLoss(10, 0.5)
+    criterion = GyroLoss(5, 5)
 
-    loss = criterion(torch.tensor(x), torch.tensor(y))
-
-    plt.scatter(y - x, loss.numpy())
-    plt.show()
+    # loss = criterion(torch.tensor(x), torch.tensor(y))
+    #
+    # plt.scatter(y - x, loss.numpy())
+    # plt.show()
 
     # backward test
     x = torch.tensor(x, requires_grad=False).cuda()
@@ -31,6 +32,8 @@ if __name__ == '__main__':
         loss = criterion(x + delta, y)
         loss.backward()
         opt.step()
+        if i % 100 == 0:
+            print(loss.item())
 
     learned = delta.cpu().data.numpy()
     ground_truth = (y - x).cpu().data.numpy()
