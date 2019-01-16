@@ -50,7 +50,6 @@ class face_dataset(Dataset):
         print(landmrk)
         show_landmark(image, landmrk)
 
-
 def show_landmark(image, landmark):
     plt.imshow(image)
     plt.scatter(landmark[:, 0], landmark[:, 1], s=10, marker='.', c='r')
