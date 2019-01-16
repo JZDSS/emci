@@ -6,12 +6,22 @@ import matplotlib.pyplot as plt
 from scipy.spatial import procrustes
 
 def read_bbox(path):
+    """
+    从文件读取bounding box 坐标
+    :param path: rect文件路径
+    :return: [min_x, min_y, max_x, max_y]
+    """
     with open(path) as f:
         l = f.readline().strip('\n').split(' ')
     return [int(ll) for ll in l]
 
 
 def read_landmarks(path):
+    """
+    从文件读取landmark坐标
+    :param path: txt文件路径
+    :return: 形状为(106, 2)的numpy.ndarray
+    """
     landmarks = []
     with open(path) as f:
         n = int(f.readline())
@@ -24,25 +34,29 @@ def read_landmarks(path):
 
 def procrustes(x, y):
     """
-    x->y
-    :param X:
-    :param Y:
-    :return:
+    求xT=y的变换矩阵T
+    :param x: 形状为(N, 3)，其中前两列为坐标，第三列全1
+    :param y: 形状为(N, 2), N个点的坐标
+    :return: T的最小二乘解
     """
+    # 奇异分解
     u, sigma, vt = np.linalg.svd(x)
     s = np.zeros((106, 3), dtype=np.float32)
     for i in range(sigma.shape[0]):
         s[i, i] = 1/sigma[i]
+    # M-P逆
     xp = vt.T @ s.T @ u.T
+    # 返回T
     return xp@y
 
 
 def main():
-    root = '/home/yqi/data/icme'
 
-    lamdmark_dir = os.path.join(root, 'data/landmark')
-    image_dir = os.path.join(root, 'data/picture')
-    bbox_dir = os.path.join(root, 'bbox')
+    root_dir = '/home/yqi/data/icme'
+
+    lamdmark_dir = os.path.join(root_dir, 'data/landmark')
+    image_dir = os.path.join(root_dir, 'data/picture')
+    bbox_dir = os.path.join(root_dir, 'bbox')
 
     try:
         filenames = joblib.load('cache/filenames.pkl')
@@ -123,7 +137,8 @@ def main():
             n = '10'
         else:
             n = '11'
-        cmd = 'ln -s %s /data/s/%s/%s'%(img_path, n, filename)
+
+        cmd = 'ln -s %s /data/icme_pose/%s/%s' % (img_path, n, filename)
         os.system(cmd)
 
 
