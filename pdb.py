@@ -3,6 +3,9 @@ import os
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from scipy.spatial import procrustes
+np.random.seed(0)
+os.system('mkdir cache')
+
 
 def read_bbox(path):
     """
@@ -53,6 +56,8 @@ def main():
     def get_id(name):
         t = name.split('_')[0:2]
         return t[0] + t[1]
+
+    # 我偷懒了，所以最好不要写成'/home/yqi/data/icme/'
     root_dir = '/home/yqi/data/icme'
 
     lamdmark_dir = os.path.join(root_dir, 'data/landmark')
@@ -146,7 +151,7 @@ def main():
         else:
             n = '11'
         id = get_id(filename)
-        cmd = 'ln -s %s /data/icme/%s/%s/%s' % (img_path, split[id], n, filename)
+        cmd = 'ln -s %s %s/%s/%s/%s' % (img_path, root_dir, split[id], n, filename)
         os.system(cmd)
 
 
