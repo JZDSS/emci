@@ -3,13 +3,13 @@ import torch.nn as nn
 import numpy as np
 
 
-class WingLoss(nn.Module):
+class GyroLoss(nn.Module):
 
     def __init__(self, w, epsilon):
-        super(WingLoss, self).__init__()
+        super(GyroLoss, self).__init__()
         self.w = w
         self.epsilon = epsilon
-        self.C = self.w + self.w * np.log(1 + self.w / self.epsilon)
+        self.C = self.w * self.epsilon * self.epsilon - self.epsilon
 
     def forward(self, predictions, targets):
         """
@@ -20,6 +20,6 @@ class WingLoss(nn.Module):
         x = predictions - targets
         t = torch.abs(x)
 
-        return torch.mean(torch.where(t < self.w,
-                           self.w * torch.log(1 + t / self.epsilon),
-                           t - self.C))
+        return torch.mean(torch.where(t < self.epsilon,
+                                      self.w * x * x,
+                                      t + self.C))
