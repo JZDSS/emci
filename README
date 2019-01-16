@@ -9,7 +9,7 @@ icme-|
      |      |-landmark-|
      |      |          |-*.txt
      |      |
-     |      |-pictures-|
+     |      |-picture-|
      |                 |-*.jpg
      |
      |-train-|
@@ -18,7 +18,7 @@ icme-|
      |      ...
      |       |-11
      |
-     |-train-|
+     |-valid-|
              |-1
              |-2
             ...
