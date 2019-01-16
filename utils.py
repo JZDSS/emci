@@ -1,36 +1,57 @@
 import numpy as np
 
+#srcs.shape = (n,68,2)
+#preds.shape = (n,68,2)
+#1张图
+def nme(src,pred):
+    bbox = np.max(src, axis= -2)-np.min(src,axis= -2)
+    d = np.sqrt(bbox[0]*bbox[1])
+    f_norm = np.linalg.norm(src-pred)
+    error = f_norm/d
+    return error
 
-def nme_calc(G, P):
-    """
-    计算每一张图的NME
-    :param G: ground truth 形状为(M, N, 2),其中M为图片数量,N为关键点的数量
-    :param P: 预测值 同上
-    :return: 长度为M的数组,每个元素对应一张图的NME,其中M为图片的数量
-    """
-    M = G.shape[0]
-    N = G.shape[1]
-    GMax = np.max(G, axis=1)
-    GMin = np.min(G, axis=1)
-    WH = GMax - GMin
-    W = WH[:, 0]
-    H = WH[:, 1]
-    S = np.sqrt(W*H)   # 所有图中ground truth 的面积构成的数组
+nme0 = 0
+num = 10
+srcs = np.random.rand(num,68,2)
+preds = np.random.rand(num,68,2)
+# [n,a,b] = srcs.shape
+# for i in range(n):
+#     src = srcs[i,:,:]
+#     pred = preds[i,:,:]
+#     nme0 += nme(src,pred)
+#
+# nme = nme0/n
+# print(nme)
 
-    A = G - P
-    B = A**2
-    C = B.sum(axis=2)
-    D = np.sqrt(C)
-    D1 = D.sum(axis=1)
-    D2 = D1 / S
-    D3 = D2 / N    # N表示点的数目,D3是一个数组,其中的元素是每个图的NME
-    E = np.sum(D3)
-    F = E / M      # M表示图的数目,F是整个图集的NME
+alpha = np.arange(0.9,1.0,0.01)
 
-    return D3
+def props(srcs,preds,alpha):
+    props = np.array([])
+    for alpha1 in alpha:
+        n = srcs.shape[0]
+        count = 0
+        sum_points = n*srcs.shape[1]
+        for i in range(n): #先算1张图的prop
+            src = srcs[i,:,:]
+            pred = preds[i,:,:]
+            bbox = np.max(src, axis=-2) - np.min(src, axis=-2)
+            d = np.sqrt(bbox[0] * bbox[1])
+            nn = src.shape[0]
+            for j in range(nn):
+                src_p = src[j,:]
+                pred_p = pred[j,:]
+                dist = np.linalg.norm(src_p-pred_p)
+                if dist/d < alpha1:
+                    count = count+1
+                    # print(count)
+            prop = count/sum_points
+        props = np.append(props,prop)
+    return props
 
+def auc(alpha,props):
+    area = np.trapz(alpha,props)
+    return area
 
-if __name__ == '__main__':
-    G = np.random.rand(4, 106, 2)  # ground truth (三维数组,M代表图的数量,N代表关键点数量)
-    P = np.random.rand(4, 106, 2)  # 预测值
-    print(nme_calc(G, P))
+props = props(srcs,preds,alpha)
+auc = auc(alpha,props)
+print(auc)
