@@ -1,13 +1,12 @@
 import os
-from skimage import io, transform
+from skimage import io
 import numpy as np
-import matplotlib.pyplot as plt
 from torch.utils.data import Dataset, DataLoader
 from random import shuffle
-from face_dataset import utils
+from data import utils
 
 class FaceDataset(Dataset):
-    def __init__(self, root_dir, bin_dir, phase=None, transform=None):
+    def __init__(self, root_dir, bin_dir):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -47,14 +46,6 @@ class FaceDataset(Dataset):
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
 
-        self.transform = transform
-        if phase == "train":
-            pass
-        elif phase == "val":
-            pass
-        else:
-            pass
-
     def __len__(self):
         return len(self.images)
 
@@ -68,26 +59,13 @@ class FaceDataset(Dataset):
         image = io.imread(img_path)
         return image, np.reshape(landmarks, (-1))
 
-    def read_landmark(self, path):
-        with open(path) as f:
-            ldmk = f.read()
-        ldmk = np.array([[int(x.split('.')[0]) for x in co.split()] for co in ldmk.split('\n')[1:-1]]).reshape((-1, 2))
-        return ldmk
-
-    def show(self, i):
-        image, landmrk = self.__getitem__(i)
-        print(self.images[i])
-        print(landmrk)
-        show_landmark(image, landmrk)
-
-def show_landmark(image, landmark):
-    plt.imshow(image)
-    plt.scatter(landmark[:, 0], landmark[:, 1], s=10, marker='.', c='r')
-    plt.pause(0.001)  # pause a bit so that plots are updated
-    plt.show()
 
 def main():
-    FaceDataset("/data/icme", "/data/icme/train")
+    a = FaceDataset("/data/icme", "/data/icme/train")
+    b = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
+    while True:
+        images, landmarks = next(b)
+        print(images, landmarks)
 
 if __name__ == '__main__':
     main()

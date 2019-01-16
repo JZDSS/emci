@@ -3,7 +3,7 @@ import os
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from scipy.spatial import procrustes
-from face_dataset import utils
+from data import utils
 np.random.seed(0)
 os.system('mkdir cache')
 
