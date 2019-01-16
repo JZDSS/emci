@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import cv2
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from scipy.spatial import procrustes
@@ -137,8 +136,10 @@ def main():
             n = '10'
         else:
             n = '11'
-
-        cmd = 'ln -s %s /data/icme_pose/%s/%s' % (img_path, n, filename)
+        if np.random.uniform(0, 1) < 0.8:
+            cmd = 'ln -s %s /data/icme/train/%s/%s' % (img_path, n, filename)
+        else:
+            cmd = 'ln -s %s /data/icme/valid/%s/%s' % (img_path, n, filename)
         os.system(cmd)
 
 
