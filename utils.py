@@ -3,7 +3,7 @@ import numpy as np
 
 def nme_calc(G, P):
     """
-    计算NME
+    计算每一张图的NME,输出长度为M的数组,其中M为图片的数量
     :param G: ground truth 形状为(M, N, 2),其中M为图片数量,N为关键点的数量
     :param P: 预测值 同上
     :return: 整个图片集的NME
@@ -27,7 +27,7 @@ def nme_calc(G, P):
     E = np.sum(D3)
     F = E / M      # M表示图的数目,F是整个图集的NME
 
-    return F
+    return D3
 
 
 if __name__ == '__main__':
