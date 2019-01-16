@@ -50,7 +50,9 @@ def procrustes(x, y):
 
 
 def main():
-
+    def get_id(name):
+        t = name.split('_')[0:2]
+        return t[0] + t[1]
     root_dir = '/home/yqi/data/icme'
 
     lamdmark_dir = os.path.join(root_dir, 'data/landmark')
@@ -62,15 +64,21 @@ def main():
         norm_landmarks = joblib.load('cache/norm_landmarks.pkl')
         mean_landmarks = joblib.load('cache/mean_landmarks.pkl')
         bboxes = joblib.load('cache/bboxes.pkl')
+        split = joblib.load('cache/split.pkl')
     except:
 
         filenames = os.listdir(image_dir)
         norm_landmarks = []
         bboxes = []
+        split = {}
         for filename in filenames:
+            id = get_id(filename)
+            if np.random.uniform(0, 1) < 0.8:
+                split[id] = 'train'
+            else:
+                split[id] = 'valid'
             landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
             bbox_path = os.path.join(bbox_dir, filename + '.rect')
-
             bbox = read_bbox(bbox_path)
             minx, miny, maxx, maxy = bbox
             w = float(maxx - minx)
@@ -87,6 +95,7 @@ def main():
         joblib.dump(mean_landmarks, 'cache/mean_landmarks.pkl', compress=3)
         joblib.dump(filenames, 'cache/filenames.pkl', compress=3)
         joblib.dump(bboxes, 'cache/bboxes.pkl', compress=3)
+        joblib.dump(split, 'cache/split.pkl', compress=3)
     # for i in range(106):
     #     plt.scatter(mean_landmarks[i, 0], mean_landmarks[i, 1])
     # plt.show()
@@ -136,10 +145,8 @@ def main():
             n = '10'
         else:
             n = '11'
-        if np.random.uniform(0, 1) < 0.8:
-            cmd = 'ln -s %s /data/icme/train/%s/%s' % (img_path, n, filename)
-        else:
-            cmd = 'ln -s %s /data/icme/valid/%s/%s' % (img_path, n, filename)
+        id = get_id(filename)
+        cmd = 'ln -s %s /data/icme/%s/%s/%s' % (img_path, split[id], n, filename)
         os.system(cmd)
 
 
