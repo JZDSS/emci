@@ -39,8 +39,8 @@ class FaceDataset(Dataset):
                     file_list.append(i)
         # 打乱顺序
         shuffle(file_list)
-        img_dir = os.path.join(root_dir, 'data/pictures')
-        landmark_dir = os.path.join(root_dir, 'data/landmarks')
+        img_dir = os.path.join(root_dir, 'data/picture')
+        landmark_dir = os.path.join(root_dir, 'data/landmark')
         bbox_dir = os.path.join(root_dir, 'bbox')
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
