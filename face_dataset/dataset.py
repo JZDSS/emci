@@ -56,7 +56,6 @@ def show_landmark(image, landmark):
     plt.pause(0.001)  # pause a bit so that plots are updated
     plt.show()
 
-
 def main():
     face_dataset(root, "")
 
