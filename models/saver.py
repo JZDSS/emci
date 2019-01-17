@@ -34,11 +34,11 @@ class Saver:
 
     def load(self, model, file):
         state_dict = torch.load(os.path.join(self.dir, file))
-        model.load(state_dict)
+        model.load_state_dict(state_dict)
 
     def load_last_ckpt(self, model):
         path = os.path.join(self.dir, self.last_ckpt())
         if path is None:
             logging.warning("No existed checkpoint found!")
         state_dict = torch.load(path)
-        model.load(state_dict)
+        model.load_state_dict(state_dict)
