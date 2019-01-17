@@ -1,6 +1,6 @@
 import os
 import torch
-
+import logging
 
 class Saver:
     def __init__(self, dir, model_name='model', max_keep=None):
@@ -30,13 +30,15 @@ class Saver:
             return None
         idx = [int(name.split('.')[0].split('-')[-1]) for name in names]
         max_idx = max(idx)
-        return os.path.join(self.dir, '%s-%d.pth' % (self.model_name, max_idx))
+        return '%s-%d.pth' % (self.model_name, max_idx)
 
-    def load(self, model, iteration):
-        state_dict = torch.load(os.path.join(self.dir, '%s-%d.pth' % (self.model_name, iteration)))
+    def load(self, model, file):
+        state_dict = torch.load(os.path.join(self.dir, file))
         model.load(state_dict)
 
     def load_last_ckpt(self, model):
-        path = self.last_ckpt()
+        path = os.path.join(self.dir, self.last_ckpt())
+        if path is None:
+            logging.warning("No existed checkpoint found!")
         state_dict = torch.load(path)
         model.load(state_dict)

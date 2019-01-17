@@ -51,12 +51,14 @@ if __name__ == '__main__':
     criterion = WingLoss(10, 2)
     optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     saver = Saver('ckpt', 'model', 10)
-
+    last = saver.last_ckpt()
+    start_iter = int(last.split('.')[0].split('-')[-1])
+    saver.load(net, last)
     running_loss = 0.0
     batch_size = 8
     epoch_size = len(a) // batch_size
-    epoch = 1
-    for iteration in range(100000):
+    epoch = start_iter // epoch_size
+    for iteration in range(start_iter, 120001):
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(DataLoader(a, batch_size,
