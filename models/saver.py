@@ -3,7 +3,12 @@ import torch
 
 
 class Saver:
-    def __init__(self, dir, model_name, max_keep):
+    def __init__(self, dir, model_name='model', max_keep=None):
+        """
+        :param dir: 模型保存路径
+        :param model_name: 模型名
+        :param max_keep: 保存最近的max_keep个模型
+        """
         self.dir = dir
         self.model_name = model_name
         self.max_keep = max_keep
@@ -12,7 +17,26 @@ class Saver:
     def save(self, state, i):
         path = os.path.join(self.dir, '%s-%d.pth' % (self.model_name, i))
         torch.save(state, path)
+        if self.max_keep is None:
+            return
         self.cache.append(path)
         if len(self.cache) > self.max_keep:
             os.remove(self.cache[0])
             del self.cache[0]
+
+    def last_ckpt(self):
+        names = os.listdir(self.dir)
+        if not names:
+            return None
+        idx = [int(name.split('.')[0].split('-')[-1]) for name in names]
+        max_idx = max(idx)
+        return os.path.join(self.dir, '%s-%d.pth' % (self.model_name, max_idx))
+
+    def load(self, model, iteration):
+        state_dict = torch.load(os.path.join(self.dir, '%s-%d.pth' % (self.model_name, iteration)))
+        model.load(state_dict)
+
+    def load_last_ckpt(self, model):
+        path = self.last_ckpt()
+        state_dict = torch.load(path)
+        model.load(state_dict)
