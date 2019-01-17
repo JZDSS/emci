@@ -5,6 +5,7 @@ import torchvision.models as models
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torch.nn as nn
+import torch
 
 import cv2
 from tensorboardX import SummaryWriter
@@ -70,3 +71,5 @@ if __name__ == '__main__':
             writer.add_image("result", image, iteration)
             writer.add_scalar("loss", loss.item(), iteration)
             writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
+            state = {'net': net.state_dict(), 'iteration': iteration}  # 'optimizer': WingLoss.state_dict(),
+            torch.save(state, './modelsave/%s' % iteration)
