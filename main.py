@@ -5,6 +5,7 @@ import torchvision.models as models
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torch.nn as nn
+import torch
 
 
 parser = argparse.ArgumentParser(
@@ -57,3 +58,5 @@ if __name__ == '__main__':
         optimizer.step()
         if iteration % 100 == 0:
             print(loss.item())
+            state = {'net': net.state_dict(), 'iteration': iteration}  # 'optimizer': WingLoss.state_dict(),
+            torch.save(state, './modelsave/%s' % iteration)
