@@ -7,7 +7,7 @@ from data import utils
 
 
 class FaceDataset(Dataset):
-    def __init__(self, root_dir, bin_dir, shape=(64, 64)):
+    def __init__(self, root_dir, bin_dir, shape=(224, 224)):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -62,6 +62,7 @@ class FaceDataset(Dataset):
         minx, miny, maxx, maxy = bbox
         image = image[miny:maxy+1, minx:maxx+1, :]
         image = cv2.resize(image, self.shape)
+        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         return image, np.reshape(landmarks, (-1))
 
 
