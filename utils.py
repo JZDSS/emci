@@ -1,18 +1,40 @@
 import numpy as np
 
-#srcs.shape = (n,68,2)
-#preds.shape = (n,68,2)
-#1张图
-def nme(src,pred):
-    bbox = np.max(src, axis= -2)-np.min(src,axis= -2)
-    d = np.sqrt(bbox[0]*bbox[1])
-    f_norm = np.linalg.norm(src-pred)
-    error = f_norm/d
-    return error
+
+def nme_calc(G, P):
+    """
+    计算NME
+    :param G:ground truth ,形状为(M,N,2),M为图片数量,N为关键点数量
+    :param P:预测值,同上
+    :return:整个图集的NME,形状为M维数组,M为图片数量
+    """
+    M = G.shape[0]
+    N = G.shape[1]
+    GMax = np.max(G, axis=1)
+    GMin = np.min(G, axis=1)
+    WH = GMax - GMin
+    W = WH[:, 0]
+    H = WH[:, 1]
+    S = np.sqrt(W*H)   # 所有图中ground truth 的面积构成的数组
+
+    A = G - P
+    B = A**2
+    C = B.sum(axis=2)
+    D = np.sqrt(C)
+    D1 = D.sum(axis=1)
+    D2 = D1 / S
+    D3 = D2 / N    # N表示点的数目,D3是一个数组,其中的元素是每个图的NME
+    E = np.sum(D3)
+    F = E / M      # M表示图的数目,F是整个图集的NME
+    return D3
 
 
 def auc_calc(nme):
-
+    """
+    计算AUC
+    :param nme:normalised mean error ,形状为M维数组,M为图片数量
+    :return: AUC:area-under-the-curve ,标量
+    """
     a = np.argsort(nme)
     b = nme[a]
     n = nme.size
@@ -55,3 +77,4 @@ if __name__ == '__main__':
     print(auc_calc(nme))
     G = np.random.rand(4, 106, 2)  # ground truth (三维数组,M代表图的数量,N代表关键点数量)
     P = np.random.rand(4, 106, 2)  # 预测值
+    print(nme_calc(G, P))
