@@ -1,11 +1,22 @@
 import argparse
-from data.face_dataset import FaceDataset
-from layers.module.wing_loss import WingLoss
+import numpy as np
+
 import torchvision.models as models
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch
+
+import cv2
+from tensorboardX import SummaryWriter
+
+from data.face_dataset import FaceDataset
+from data.utils import draw_landmarks
+
+from layers.module.wing_loss import WingLoss
+from layers.module.gyro_loss import GyroLoss
+
+
 
 
 parser = argparse.ArgumentParser(
@@ -19,17 +30,17 @@ parser.add_argument('-n', '--n_gpu', default=1)
 args = parser.parse_args()
 
 if __name__ == '__main__':
-    print(args.cuda)
-    net =models.resnet18(num_classes=212)
+    writer = SummaryWriter('logs/wing_loss')
+    net =models.resnet18(num_classes=212).cuda()
     sig = nn.Sigmoid()
     a = FaceDataset("/data/icme", "/data/icme/train")
     batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 
-    criterion = WingLoss(10, 0.5)
-    optimizer = optim.SGD(net.parameters(), lr=1e-3, momentum=0.9)
+    criterion = WingLoss(10, 2)
+    optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=5e-4)
 
     running_loss = 0.0
-    batch_size = 4
+    batch_size = 8
     epoch_size = len(a) // batch_size
     for iteration in range(100000):
         if iteration % epoch_size == 0:
@@ -38,17 +49,9 @@ if __name__ == '__main__':
                                                   shuffle=True, num_workers=4))
         # load train data
         images, landmarks = next(batch_iterator)
-        # images = images.cuda()
-        # landmarks = landmarks.cuda()
-        # print(np.sum([torch.sum(anno[:,-1] == 2) for anno in targets]))
+        images = images.cuda()
+        landmarks = landmarks.cuda()
 
-        # if args.cuda:
-        #     images = Variable(images.cuda())
-        #     landmarks = [Variable(anno.cuda()) for anno in landmarks]
-        # else:
-        #     images = Variable(images)
-        #     landmarks = [Variable(anno) for anno in landmarks]
-        # forward
         out = net(images)
         out = sig(out)
         # backprop
@@ -57,6 +60,16 @@ if __name__ == '__main__':
         loss.backward()
         optimizer.step()
         if iteration % 100 == 0:
-            print(loss.item())
+            image = images.cpu().data.numpy()[0]
+            gt = landmarks.cpu().data.numpy()[0]
+            pr = out.cpu().data.numpy()[0]
+            # 绿色的真实landmark
+            image = draw_landmarks(image, gt, (0, 255, 0))
+            # 红色的预测landmark
+            image = draw_landmarks(image, pr, (0, 0, 255))
+            image = image[::-1, ...]
+            writer.add_image("result", image, iteration)
+            writer.add_scalar("loss", loss.item(), iteration)
+            writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
             state = {'net': net.state_dict(), 'iteration': iteration}  # 'optimizer': WingLoss.state_dict(),
             torch.save(state, './modelsave/%s' % iteration)

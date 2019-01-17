@@ -1,5 +1,5 @@
 import numpy as np
-
+import cv2
 
 def read_bbox(path):
     """
@@ -41,3 +41,13 @@ def norm_landmarks(landmarks, bbox):
     landmarks[:, 0] = landmarks[:, 0] / w
     landmarks[:, 1] = landmarks[:, 1] / h
     return landmarks
+
+def draw_landmarks(image, landmarks, color):
+    landmarks = np.reshape(landmarks, (106, 2))
+    image = np.transpose(image, (1, 2, 0)).astype(np.uint8).copy()
+    landmarks[:, 0] *= image.shape[1]
+    landmarks[:, 1] *= image.shape[0]
+    landmarks.astype(np.int)
+    for j in range(106):
+        cv2.circle(image, (landmarks[j, 0], landmarks[j, 1]), 2, color)
+    return np.transpose(image, (2, 0, 1))
