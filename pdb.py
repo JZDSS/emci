@@ -1,35 +1,10 @@
 import numpy as np
 import os
-import cv2
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
-from scipy.spatial import procrustes
-
-def read_bbox(path):
-    """
-    从文件读取bounding box 坐标
-    :param path: rect文件路径
-    :return: [min_x, min_y, max_x, max_y]
-    """
-    with open(path) as f:
-        l = f.readline().strip('\n').split(' ')
-    return [int(ll) for ll in l]
-
-
-def read_landmarks(path):
-    """
-    从文件读取landmark坐标
-    :param path: txt文件路径
-    :return: 形状为(106, 2)的numpy.ndarray
-    """
-    landmarks = []
-    with open(path) as f:
-        n = int(f.readline())
-        for i in range(n):
-            pt = f.readline().strip('\n').split(' ')
-            pt = [int(float(p)) for p in pt]
-            landmarks.append(pt)
-    return np.array(landmarks, dtype=np.float32)
+from data import utils
+np.random.seed(0)
+os.system('mkdir cache')
 
 
 def procrustes(x, y):
@@ -51,7 +26,11 @@ def procrustes(x, y):
 
 
 def main():
+    def get_id(name):
+        t = name.split('_')[0:2]
+        return t[0] + t[1]
 
+    # 我偷懒了，所以最好不要写成'/home/yqi/data/icme/'
     root_dir = '/home/yqi/data/icme'
 
     lamdmark_dir = os.path.join(root_dir, 'data/landmark')
@@ -63,23 +42,24 @@ def main():
         norm_landmarks = joblib.load('cache/norm_landmarks.pkl')
         mean_landmarks = joblib.load('cache/mean_landmarks.pkl')
         bboxes = joblib.load('cache/bboxes.pkl')
+        split = joblib.load('cache/split.pkl')
     except:
 
         filenames = os.listdir(image_dir)
         norm_landmarks = []
         bboxes = []
+        split = {}
         for filename in filenames:
+            id = get_id(filename)
+            if np.random.uniform(0, 1) < 0.8:
+                split[id] = 'train'
+            else:
+                split[id] = 'valid'
             landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
             bbox_path = os.path.join(bbox_dir, filename + '.rect')
-
-            bbox = read_bbox(bbox_path)
-            minx, miny, maxx, maxy = bbox
-            w = float(maxx - minx)
-            h = float(maxy - miny)
-            landmarks = read_landmarks(landmark_path)
-            landmarks -= [minx, miny]
-            landmarks[:, 0] = landmarks[:, 0] / w
-            landmarks[:, 1] = landmarks[:, 1] / h
+            bbox = utils.read_bbox(bbox_path)
+            landmarks = utils.read_landmarks(landmark_path)
+            landmarks = utils.norm_landmarks(landmarks, bbox)
             norm_landmarks.append(landmarks)
             bboxes.append(bbox)
         norm_landmarks = np.stack(norm_landmarks, axis=0)
@@ -88,6 +68,7 @@ def main():
         joblib.dump(mean_landmarks, 'cache/mean_landmarks.pkl', compress=3)
         joblib.dump(filenames, 'cache/filenames.pkl', compress=3)
         joblib.dump(bboxes, 'cache/bboxes.pkl', compress=3)
+        joblib.dump(split, 'cache/split.pkl', compress=3)
     # for i in range(106):
     #     plt.scatter(mean_landmarks[i, 0], mean_landmarks[i, 1])
     # plt.show()
@@ -137,8 +118,8 @@ def main():
             n = '10'
         else:
             n = '11'
-
-        cmd = 'ln -s %s /data/icme_pose/%s/%s' % (img_path, n, filename)
+        id = get_id(filename)
+        cmd = 'ln -s %s %s/%s/%s/%s' % (img_path, root_dir, split[id], n, filename)
         os.system(cmd)
 
 
