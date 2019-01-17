@@ -1,12 +1,13 @@
 import os
-from skimage import io
+import cv2
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from random import shuffle
 from data import utils
 
+
 class FaceDataset(Dataset):
-    def __init__(self, root_dir, bin_dir):
+    def __init__(self, root_dir, bin_dir, shape=(64, 64)):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -14,6 +15,7 @@ class FaceDataset(Dataset):
         :param transform:
         """
         super(FaceDataset, self).__init__()
+        self.shape = shape
         # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
         bins = os.listdir(bin_dir)
         s = []
@@ -56,16 +58,20 @@ class FaceDataset(Dataset):
         bbox = utils.read_bbox(bbox_path)
         landmarks = utils.read_landmarks(landmark_path)
         landmarks = utils.norm_landmarks(landmarks, bbox)
-        image = io.imread(img_path)
+        image = cv2.imread(img_path)
+        minx, miny, maxx, maxy = bbox
+        image = image[miny:maxy+1, minx:maxx+1, :]
+        image = cv2.resize(image, self.shape)
         return image, np.reshape(landmarks, (-1))
 
 
-def main():
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
     a = FaceDataset("/data/icme", "/data/icme/train")
     b = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
     while True:
         images, landmarks = next(b)
+        image = images[0, :]
+        plt.imshow(image)
+        plt.show()
         print(images, landmarks)
-
-if __name__ == '__main__':
-    main()
