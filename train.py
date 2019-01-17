@@ -1,22 +1,18 @@
+import os
 import argparse
-import numpy as np
-
-import torchvision.models as models
-import torch.optim as optim
-from torch.utils.data import DataLoader
-import torch.nn as nn
-import torch
-
-import cv2
 from tensorboardX import SummaryWriter
 
-from data.face_dataset import FaceDataset
-from data.utils import draw_landmarks
+import torch
+import torch.optim as optim
+from torch.utils.data import DataLoader
 
+from data.utils import draw_landmarks
+from data.face_dataset import FaceDataset
 from layers.module.wing_loss import WingLoss
 from layers.module.gyro_loss import GyroLoss
 
-
+from models.saver import Saver
+from models.resnet50 import ResNet50
 
 
 parser = argparse.ArgumentParser(
@@ -31,13 +27,14 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
     writer = SummaryWriter('logs/wing_loss')
-    net =models.resnet18(num_classes=212).cuda()
-    sig = nn.Sigmoid()
+    net = ResNet50().cuda()
+
     a = FaceDataset("/data/icme", "/data/icme/train")
     batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 
     criterion = WingLoss(10, 2)
     optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=5e-4)
+    saver = Saver('ckpt', 'model', 10)
 
     running_loss = 0.0
     batch_size = 8
@@ -53,7 +50,6 @@ if __name__ == '__main__':
         landmarks = landmarks.cuda()
 
         out = net(images)
-        out = sig(out)
         # backprop
         optimizer.zero_grad()
         loss = criterion(out, landmarks)
@@ -71,5 +67,8 @@ if __name__ == '__main__':
             writer.add_image("result", image, iteration)
             writer.add_scalar("loss", loss.item(), iteration)
             writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
-            state = {'net': net.state_dict(), 'iteration': iteration}  # 'optimizer': WingLoss.state_dict(),
-            torch.save(state, './modelsave/%s' % iteration)
+
+            state = net.state_dict()
+            saver.save(state, iteration)
+
+    torch.save({'weights': net.state_dict()}, 'FinalModel.pth')
