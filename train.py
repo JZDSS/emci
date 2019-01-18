@@ -25,7 +25,7 @@ parser.add_argument('-l', '--lr', default=1e-5, type=float)
 parser.add_argument('-b', '--batch_size', default=16, type=int)
 parser.add_argument('-c', '--cuda', default=True, type=bool)
 parser.add_argument('-n', '--n_gpu', default=1, type=int)
-parser.add_argument('-s', '--step', default=60000, type=int)
+parser.add_argument('-s', '--step', default=120000, type=int)
 parser.add_argument('-g', '--gamma', default=0.1, type=float)
 parser.add_argument('-w', '--weight_decay', default=5e-4, type=float)
 
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     batch_size = args.batch_size
     epoch_size = len(a) // batch_size
     epoch = start_iter // epoch_size + 1
-    for iteration in range(start_iter, 120001):
+    for iteration in range(start_iter, 200001):
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(DataLoader(a, batch_size,
