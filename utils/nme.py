@@ -32,9 +32,12 @@ class NME(object):
         E = np.sum(D3)
         F = E / M  # M表示图的数目,F是整个图集的NME
 
-        # 指数滑动窗口
-        self.value *= self.decay
-        self.value += (1 - self.decay) * F
+        if self.value == 0:
+            self.value = F
+        else:
+            # 指数滑动窗口
+            self.value *= self.decay
+            self.value += (1 - self.decay) * F
         return D3
 
 
