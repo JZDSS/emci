@@ -38,13 +38,13 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     if epoch < 6:
         lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
     else:
-        lr = args.lr * (gamma ** (iteration // step))
+        lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
 
 if __name__ == '__main__':
-    metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
+    metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
 
     writer = SummaryWriter('logs/wing_loss/train')
     net = ResNet50().cuda()
