@@ -53,14 +53,14 @@ def draw_landmarks(image, landmarks, color):
     return np.transpose(image, (2, 0, 1))
 
 #水平
-def random_flip(img,prob):
+def random_flip(img, landmark, prob):
     a = np.random.uniform(0,1,1)
     if a < prob:
         img = cv2.flip(img,1)
         landmark[:, 0] = 1 - landmark[:, 0]
     return img, landmark
 
-def random_gamma_trans(img,gamma_vari):
+def random_gamma_trans(img, gamma_vari):
     log_gamma_vari = np.log(gamma_vari)
     alpha = np.random.uniform(-log_gamma_vari, log_gamma_vari)
     gamma = np.exp(alpha)

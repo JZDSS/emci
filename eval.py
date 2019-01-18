@@ -17,7 +17,7 @@ net = ResNet18().cuda()
 criterion = WingLoss(10, 0.5)
 
 #PATH = './ckpt'
-a = FaceDataset("/data/icme", "/data/icme/valid")
+a = FaceDataset("/data/icme", "/data/icme/valid", phase='eval')
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
 saver = Saver('ckpt', 'model')
