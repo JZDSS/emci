@@ -3,7 +3,7 @@ import numpy as np
 
 class NME(object):
     def __init__(self, decay=0.999):
-        self.value = 0
+        self.value = None
         self.decay = decay
 
     def update(self, G, P):
@@ -32,7 +32,7 @@ class NME(object):
         E = np.sum(D3)
         F = E / M  # M表示图的数目,F是整个图集的NME
 
-        if self.value == 0:
+        if self.value is None:
             self.value = F
         else:
             # 指数滑动窗口
@@ -40,6 +40,5 @@ class NME(object):
             self.value += (1 - self.decay) * F
         return D3
 
-
-if __name__ == '__main__':
-    NME(11)
+    def clear(self):
+        self.value = None

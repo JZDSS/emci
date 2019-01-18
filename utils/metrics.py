@@ -1,6 +1,6 @@
 from utils.nme import NME
 from utils.auc import AUC
-
+from utils.loss import Loss
 
 def metric(add):
     def r(self, *args, **kwargs):
@@ -13,6 +13,7 @@ class Metrics(object):
     def __int__(self):
         self.nme = None
         self.auc = None
+        self.loss = None
 
     @metric
     def add_nme(self, decay=0.999):
@@ -21,3 +22,12 @@ class Metrics(object):
     @metric
     def add_auc(self, low=0, high=0.08, step=0.01):
         self.auc = AUC(low, high, step)
+
+    @metric
+    def add_loss(self, decay=0.999):
+        self.loss = Loss(decay)
+
+    def clear(self):
+        self.nme.clear()
+        self.auc.clear()
+        self.loss.clear()

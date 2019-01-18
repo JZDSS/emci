@@ -11,7 +11,8 @@ class AUC(object):
         self.high = high
         self.step = step
         self.decay = decay
-        self.value = 0
+        self.value = None
+
     def update(self, nme):
         """
             计算AUC
@@ -40,7 +41,7 @@ class AUC(object):
 
         auc = np.sum(area) / (self.high - self.low)
 
-        if self.value == 0:
+        if self.value is None:
             self.value = auc
         else:
             # 指数滑动窗口
@@ -49,8 +50,5 @@ class AUC(object):
 
         return auc
 
-if __name__ == '__main__':
-    a = AUC()
-    a.update(np.zeros(1000))
-    print(a.value)
-    a = 1
+    def clear(self):
+        self.value = None
