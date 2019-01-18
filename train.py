@@ -44,7 +44,7 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     return lr
 
 if __name__ == '__main__':
-    metrics = Metrics().add_nme(0.99).add_auc()
+    metrics = Metrics().add_nme(0.9).add_auc()
 
     writer = SummaryWriter('logs/wing_loss')
     net = ResNet50().cuda()
@@ -91,11 +91,13 @@ if __name__ == '__main__':
             image = draw_landmarks(image, pr[0], (0, 0, 255))
             image = image[::-1, ...]
             metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
-            writer.add_scalar("nme", metrics.nme.value, iteration)
+
+            writer.add_scalar("watch/nme", metrics.nme.value, iteration)
+            writer.add_scalar("watch/loss", loss.item(), iteration)
+            writer.add_scalar("watch/learning_rate", lr, iteration)
+
             writer.add_image("result", image, iteration)
-            writer.add_scalar("loss", loss.item(), iteration)
             writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
-            writer.add_scalar("learning_rate", lr, iteration)
             state = net.state_dict()
             saver.save(state, iteration)
 
