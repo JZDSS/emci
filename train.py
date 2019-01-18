@@ -44,9 +44,9 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     return lr
 
 if __name__ == '__main__':
-    metrics = Metrics().add_nme(0.9).add_auc()
+    metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 
-    writer = SummaryWriter('logs/wing_loss')
+    writer = SummaryWriter('logs/wing_loss/train')
     net = ResNet50().cuda()
     a = FaceDataset("/data/icme", "/data/icme/train")
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
@@ -92,9 +92,10 @@ if __name__ == '__main__':
             image = image[::-1, ...]
             nme = metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
             metrics.auc.update(nme)
+            metrics.loss.update(loss)
             writer.add_scalar("watch/NME", metrics.nme.value * 100, iteration)
             writer.add_scalar("watch/AUC", metrics.auc.value * 100, iteration)
-            writer.add_scalar("watch/loss", loss.item(), iteration)
+            writer.add_scalar("watch/loss", metrics.loss.value, iteration)
             writer.add_scalar("watch/learning_rate", lr, iteration)
 
             writer.add_image("result", image, iteration)

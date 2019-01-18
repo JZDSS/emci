@@ -20,8 +20,8 @@ class Metrics(object):
         self.nme = NME(decay)
 
     @metric
-    def add_auc(self, low=0, high=0.08, step=0.01):
-        self.auc = AUC(low, high, step)
+    def add_auc(self, low=0, high=0.08, step=0.01, decay=0.99):
+        self.auc = AUC(low, high, step, decay)
 
     @metric
     def add_loss(self, decay=0.999):
