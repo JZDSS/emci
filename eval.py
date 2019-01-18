@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
 from models.saver import Saver
 from models.resnet50 import ResNet50
-
+from tensorboardX import SummaryWriter
 import numpy as np
 from utils.metrics import Metrics
 net = ResNet50()
@@ -20,7 +20,7 @@ saver.load_last_ckpt(net)
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-
+writer = SummaryWriter('logs/wing_loss/valid')
 metrics = Metrics().add_nme(0.99).add_auc()
 for iteration in range(11):
     if iteration % epoch_size == 0:
@@ -38,6 +38,9 @@ for iteration in range(11):
 
     if iteration % 10 == 0:
         #print(loss.item())
-        metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
+        nme = metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
+        metrics.auc.update(nme)
+        writer.add_scalar("watch/NME", metrics.nme.value * 100, iteration)
+        writer.add_scalar("watch/AUC", metrics.auc.value * 100, iteration)
 
 
