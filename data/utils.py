@@ -51,3 +51,19 @@ def draw_landmarks(image, landmarks, color):
     for j in range(106):
         cv2.circle(image, (landmarks[j, 0], landmarks[j, 1]), 2, color)
     return np.transpose(image, (2, 0, 1))
+
+#水平
+def random_flip(img,prob):
+    a = np.random.uniform(0,1,1)
+    if a < prob:
+        img = cv2.flip(img,1)
+        landmark[:, 0] = 1 - landmark[:, 0]
+    return img, landmark
+
+def random_gamma_trans(img,gamma_vari):
+    log_gamma_vari = np.log(gamma_vari)
+    alpha = np.random.uniform(-log_gamma_vari, log_gamma_vari)
+    gamma = np.exp(alpha)
+    gamma_table = [np.power(x/255.0, gamma)*255.0 for x in range(256)]
+    gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
+    return cv2.LUT(img,gamma_table)
