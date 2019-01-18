@@ -13,6 +13,7 @@ from data.utils import draw_landmarks
 
 
 net = ResNet18().cuda()
+
 criterion = WingLoss(10, 0.5)
 
 #PATH = './ckpt'
