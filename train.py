@@ -90,9 +90,10 @@ if __name__ == '__main__':
             # 红色的预测landmark
             image = draw_landmarks(image, pr[0], (0, 0, 255))
             image = image[::-1, ...]
-            metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
-
-            writer.add_scalar("watch/nme", metrics.nme.value, iteration)
+            nme = metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
+            metrics.auc.update(nme)
+            writer.add_scalar("watch/NME", metrics.nme.value * 100, iteration)
+            writer.add_scalar("watch/AUC", metrics.auc.value * 100, iteration)
             writer.add_scalar("watch/loss", loss.item(), iteration)
             writer.add_scalar("watch/learning_rate", lr, iteration)
 
