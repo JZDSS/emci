@@ -18,12 +18,28 @@ from models.resnet50 import ResNet50
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--learning_rate', default=1e-3)
+parser.add_argument('-l', '--lr', default=1e-3)
 parser.add_argument('-b', '--batch_size', default=16)
 parser.add_argument('-c', '--cuda', default=True)
 parser.add_argument('-n', '--n_gpu', default=1)
+parser.add_argument('-s', '--step', default=2000)
+parser.add_argument('-g', '--gamma', default=0.95)
+parser.add_argument('-w', '--weight_decay', default=5e-4)
 
 args = parser.parse_args()
+
+def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
+    """Sets the learning rate
+    # Adapted from PyTorch Imagenet example:
+    # https://github.com/pytorch/examples/blob/master/imagenet/main.py
+    """
+    if epoch < 6:
+        lr = 1e-6 + (args.lr-1e-6) * iteration / (epoch_size * 5)
+    else:
+        lr = args.lr * (gamma ** (iteration // step))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+    return lr
 
 if __name__ == '__main__':
     writer = SummaryWriter('logs/wing_loss')
@@ -33,17 +49,23 @@ if __name__ == '__main__':
     batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 
     criterion = WingLoss(10, 2)
-    optimizer = optim.Adam(net.parameters(), lr=1e-3, weight_decay=5e-4)
+    optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     saver = Saver('ckpt', 'model', 10)
-
+    last = saver.last_ckpt()
+    start_iter = int(last.split('.')[0].split('-')[-1])
+    saver.load(net, last)
     running_loss = 0.0
     batch_size = 8
     epoch_size = len(a) // batch_size
-    for iteration in range(100000):
+    epoch = start_iter // epoch_size
+    for iteration in range(start_iter, 120001):
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(DataLoader(a, batch_size,
                                                   shuffle=True, num_workers=4))
+            epoch += 1
+
+        lr = adjust_learning_rate(optimizer, args.step, args.gamma, epoch, iteration, epoch_size)
         # load train data
         images, landmarks = next(batch_iterator)
         images = images.cuda()
@@ -67,7 +89,7 @@ if __name__ == '__main__':
             writer.add_image("result", image, iteration)
             writer.add_scalar("loss", loss.item(), iteration)
             writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
-
+            writer.add_scalar("learning_rate", lr, iteration)
             state = net.state_dict()
             saver.save(state, iteration)
 
