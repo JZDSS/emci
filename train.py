@@ -1,5 +1,6 @@
 import os
 import argparse
+import numpy as np
 from tensorboardX import SummaryWriter
 
 import torch
@@ -13,18 +14,19 @@ from layers.module.gyro_loss import GyroLoss
 
 from models.saver import Saver
 from models.resnet50 import ResNet50
+from utils.metrics import Metrics
 
 
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--lr', default=1e-3)
-parser.add_argument('-b', '--batch_size', default=16)
-parser.add_argument('-c', '--cuda', default=True)
-parser.add_argument('-n', '--n_gpu', default=1)
-parser.add_argument('-s', '--step', default=2000)
-parser.add_argument('-g', '--gamma', default=0.95)
-parser.add_argument('-w', '--weight_decay', default=5e-4)
+parser.add_argument('-l', '--lr', default=1e-3, type=float)
+parser.add_argument('-b', '--batch_size', default=16, type=int)
+parser.add_argument('-c', '--cuda', default=True, type=bool)
+parser.add_argument('-n', '--n_gpu', default=1, type=int)
+parser.add_argument('-s', '--step', default=2000, type=int)
+parser.add_argument('-g', '--gamma', default=0.95, type=float)
+parser.add_argument('-w', '--weight_decay', default=5e-4, type=float)
 
 args = parser.parse_args()
 
@@ -34,7 +36,7 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
     if epoch < 6:
-        lr = 1e-6 + (args.lr-1e-6) * iteration / (epoch_size * 5)
+        lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
     else:
         lr = args.lr * (gamma ** (iteration // step))
     for param_group in optimizer.param_groups:
@@ -42,20 +44,22 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     return lr
 
 if __name__ == '__main__':
-    writer = SummaryWriter('logs/wing_loss')
-    net = ResNet50().cuda()
+    metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 
+    writer = SummaryWriter('logs/wing_loss/train')
+    net = ResNet50().cuda()
     a = FaceDataset("/data/icme", "/data/icme/train")
-    batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
+    batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
 
     criterion = WingLoss(10, 2)
     optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     saver = Saver('ckpt', 'model', 10)
     last = saver.last_ckpt()
-    start_iter = int(last.split('.')[0].split('-')[-1])
-    saver.load(net, last)
+    start_iter = 0 if last is None else int(last.split('.')[0].split('-')[-1])
+    if start_iter > 0:
+        saver.load(net, last)
     running_loss = 0.0
-    batch_size = 8
+    batch_size = args.batch_size
     epoch_size = len(a) // batch_size
     epoch = start_iter // epoch_size
     for iteration in range(start_iter, 120001):
@@ -79,17 +83,23 @@ if __name__ == '__main__':
         optimizer.step()
         if iteration % 100 == 0:
             image = images.cpu().data.numpy()[0]
-            gt = landmarks.cpu().data.numpy()[0]
-            pr = out.cpu().data.numpy()[0]
+            gt = landmarks.cpu().data.numpy()
+            pr = out.cpu().data.numpy()
             # 绿色的真实landmark
-            image = draw_landmarks(image, gt, (0, 255, 0))
+            image = draw_landmarks(image, gt[0], (0, 255, 0))
             # 红色的预测landmark
-            image = draw_landmarks(image, pr, (0, 0, 255))
+            image = draw_landmarks(image, pr[0], (0, 0, 255))
             image = image[::-1, ...]
+            nme = metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
+            metrics.auc.update(nme)
+            metrics.loss.update(loss)
+            writer.add_scalar("watch/NME", metrics.nme.value * 100, iteration)
+            writer.add_scalar("watch/AUC", metrics.auc.value * 100, iteration)
+            writer.add_scalar("watch/loss", metrics.loss.value, iteration)
+            writer.add_scalar("watch/learning_rate", lr, iteration)
+
             writer.add_image("result", image, iteration)
-            writer.add_scalar("loss", loss.item(), iteration)
             writer.add_histogram("prediction", out.cpu().data.numpy(), iteration)
-            writer.add_scalar("learning_rate", lr, iteration)
             state = net.state_dict()
             saver.save(state, iteration)
 
