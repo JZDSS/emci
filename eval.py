@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
 from models.saver import Saver
 from models.resnet50 import ResNet50
+from models.resnet18 import ResNet18
 from tensorboardX import SummaryWriter
 import numpy as np
 from utils.metrics import Metrics
@@ -11,7 +12,7 @@ import time
 from data.utils import draw_landmarks
 
 
-net = ResNet50().cuda()
+net = ResNet18().cuda()
 criterion = WingLoss(10, 0.5)
 
 #PATH = './ckpt'
