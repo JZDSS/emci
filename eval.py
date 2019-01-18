@@ -10,7 +10,7 @@ from utils.metrics import Metrics
 import time
 from data.utils import draw_landmarks
 
-
+#我在笔记本上push一下用来记住账号密码，就随便写了行注释
 net = ResNet50().cuda()
 criterion = WingLoss(10, 0.5)
 
