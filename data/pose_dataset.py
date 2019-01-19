@@ -6,7 +6,7 @@ from random import shuffle
 from data import utils
 
 
-class FaceDataset(Dataset):
+class PoseDataset(Dataset):
     def __init__(self, root_dir, bin_dir, pose, phase='train', shape=(224, 224)):
         """
         :param root_dir: icme文件夹路径，见README
@@ -16,7 +16,7 @@ class FaceDataset(Dataset):
         :param shape:
         """
 
-        super(FaceDataset, self).__init__()
+        super(PoseDataset, self).__init__()
         self.shape = shape
         # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
         bins = os.listdir(bin_dir)
