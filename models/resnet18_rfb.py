@@ -76,7 +76,6 @@ class BasicRFB(nn.Module):
         else:
             short = self.shortcut(x)
             out = out*self.scale + short
-        out = self.relu(out)
 
         return out
 
