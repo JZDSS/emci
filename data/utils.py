@@ -28,6 +28,17 @@ def read_landmarks(path):
             landmarks.append(pt)
     return np.array(landmarks, dtype=np.float32)
 
+def save_landmarks(landmarks, file):
+    """
+    保存landmarks
+    :param landmarks: (106, 2)
+    :param file: 文件
+    """
+    with open(file) as f:
+        f.write("%d\n" % 106)
+        for i in range(106):
+            f.write('%f %f\n' % (landmarks[i, 0], landmarks[i, 1]))
+
 def norm_landmarks(landmarks, bbox):
     """
     根据bounding box信息对landmarks坐标进行规范化。
