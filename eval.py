@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
 from models.saver import Saver
 from models.resnet50 import ResNet50
-from models.resnet18 import ResNet18
+from models.resnet18_rfb import ResNet18
 from tensorboardX import SummaryWriter
 import numpy as np
 from utils.metrics import Metrics
@@ -25,7 +25,7 @@ current = None
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-writer = SummaryWriter('logs/wing_loss/valid')
+writer = SummaryWriter('logs/wing_loss_rfb/valid')
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 while True:
     if current == saver.last_ckpt():

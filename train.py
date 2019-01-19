@@ -14,14 +14,14 @@ from layers.module.gyro_loss import GyroLoss
 
 from models.saver import Saver
 from models.resnet50 import ResNet50
-from models.resnet18 import ResNet18
+from models.resnet18_rfb import ResNet18
 from utils.metrics import Metrics
 
 
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--lr', default=1e-5, type=float)
+parser.add_argument('-l', '--lr', default=1e-4, type=float)
 parser.add_argument('-b', '--batch_size', default=16, type=int)
 parser.add_argument('-c', '--cuda', default=True, type=bool)
 parser.add_argument('-n', '--n_gpu', default=1, type=int)
@@ -48,7 +48,7 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
 if __name__ == '__main__':
     metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
 
-    writer = SummaryWriter('logs/wing_loss/train')
+    writer = SummaryWriter('logs/wing_loss_rfb/train')
     net = ResNet18().cuda()
     a = FaceDataset("/data/icme", "/data/icme/train")
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))

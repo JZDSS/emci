@@ -24,20 +24,40 @@ class ResNet18(resnet.ResNet):
         self.soft_max = nn.Softmax(dim=-1)
 
     def forward(self, x):
+        out = []
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
 
         x = self.layer1(x)
+        out.append(self.pred1(x))
 
         x = self.layer2(x)
+        out.append(self.pred2(x))
 
         x = self.layer3(x)
+        out.append(self.pred3(x))
 
         x = self.layer4(x)
+        out.append(self.pred4(x))
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        out = self.sigmoid(x)
+        out.append(self.fc(x))
+
+        res_list = []
+        prob_list = []
+        for p in out:
+            res, prob = p.split([212, 212], dim=1)
+            res = res.view((res.shape[0], res.shape[1], -1))
+            prob = prob.view((prob.shape[0], prob.shape[1], -1))
+            res_list.append(res)
+            prob_list.append(prob)
+        res = torch.cat(res_list, dim=-1)
+        prob = torch.cat(prob_list, dim=-1)
+        res = self.sigmoid(res)
+        prob = self.soft_max(prob)
+        out = res * prob
+        out = out.sum(dim=-1)
         return out
