@@ -25,13 +25,3 @@ class WingLoss(nn.Module):
                            t - self.C))
 
 
-class Swish_act(nn.Module):
-    """
-    创建了一个新的激活函数swish
-    """
-    def __init__(self):
-        super(Swish_act, self).__init__()
-
-    def forward(self, x):
-        x = x * nn.Sigmoid(x)
-        return x
