@@ -47,11 +47,8 @@ def align(images, landmarks, bboxs):
 
     return images
 
-
-
-
 if __name__ == "__main__":
-    a = fd.FaceDataset("/home/orion/Desktop/ecmi/emci/data/icme", "/home/orion/Desktop/ecmi/emci/data/icme/train")
+    a = fd.FaceDataset("/data/icme", "/data/icme/train")
     b = iter(DataLoader(a, batch_size=2, shuffle=True, num_workers=0))
     while True:
         images, landmarks, bboxs = next(b)
