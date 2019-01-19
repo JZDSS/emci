@@ -16,10 +16,14 @@ class ResNet18(resnet.ResNet):
             model_dict = self.state_dict()
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
-        self.pred1 = nn.Conv2d(64, 212 * 2, 3)
-        self.pred2 = nn.Conv2d(128, 212 * 2, 3)
-        self.pred3 = nn.Conv2d(256, 212 * 2, 3)
-        self.pred4 = nn.Conv2d(512, 212 * 2, 3)
+        self.pred1 = nn.Conv2d(64, 64, 3)
+        self.pred2 = nn.Conv2d(128, 128, 3)
+        self.pred3 = nn.Conv2d(256, 256, 3)
+        self.pred4 = nn.Conv2d(512, 512, 3)
+        self.pred1_c = nn.Conv2d(64, 212 * 2, 3)
+        self.pred2_c = nn.Conv2d(128, 212 * 2, 3)
+        self.pred3_c = nn.Conv2d(256, 212 * 2, 3)
+        self.pred4_c = nn.Conv2d(512, 212 * 2, 3)
         self.sigmoid = nn.Sigmoid()
         self.soft_max = nn.Softmax(dim=-1)
 
@@ -31,16 +35,16 @@ class ResNet18(resnet.ResNet):
         x = self.maxpool(x)
 
         x = self.layer1(x)
-        out.append(self.pred1(x))
+        out.append(self.pred1_c(self.pred1(x)))
 
         x = self.layer2(x)
-        out.append(self.pred2(x))
+        out.append(self.pred1_c(self.pred2(x)))
 
         x = self.layer3(x)
-        out.append(self.pred3(x))
+        out.append(self.pred1_c(self.pred3(x)))
 
         x = self.layer4(x)
-        out.append(self.pred4(x))
+        out.append(self.pred1_c(self.pred4(x)))
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
