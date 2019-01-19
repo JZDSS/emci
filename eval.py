@@ -1,4 +1,5 @@
 from data.face_dataset import FaceDataset
+from data.pose_dataset import PoseDataset
 import torch
 from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
@@ -17,7 +18,7 @@ net = ResNet18().cuda()
 criterion = WingLoss(10, 0.5)
 
 #PATH = './ckpt'
-a = FaceDataset("/data/icme", "/data/icme/valid", phase='eval')
+a = PoseDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/valid", phase='eval', pose=1)
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
 saver = Saver('ckpt', 'model')

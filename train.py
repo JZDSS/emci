@@ -9,12 +9,13 @@ from torch.utils.data import DataLoader
 
 from data.utils import draw_landmarks
 from data.face_dataset import FaceDataset
+from data.pose_dataset import PoseDataset
 from layers.module.wing_loss import WingLoss
 from layers.module.gyro_loss import GyroLoss
 
 from models.saver import Saver
 from models.resnet50 import ResNet50
-from models.resnet18_rfb import ResNet18
+from models.resnet18 import ResNet18
 from utils.metrics import Metrics
 
 
@@ -36,11 +37,11 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     # Adapted from PyTorch Imagenet example:
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
-    if epoch < 6:
-        lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
-    else:
-        lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
-    # lr = args.lr * (gamma ** (iteration // step))
+    # if epoch < 6:
+    #     lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
+    # else:
+    #     lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
+    lr = args.lr * (gamma ** (iteration // step))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
@@ -50,7 +51,7 @@ if __name__ == '__main__':
 
     writer = SummaryWriter('logs/wing_loss_rfb/train')
     net = ResNet18().cuda()
-    a = FaceDataset("/data/icme", "/data/icme/train")
+    a = PoseDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train", pose=1)
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
 
     criterion = WingLoss(10, 2)

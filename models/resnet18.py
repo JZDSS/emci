@@ -8,7 +8,7 @@ import torch
 class ResNet18(resnet.ResNet):
 
     def __init__(self, pretrained=True, num_classes=212, **kwargs):
-        super(ResNet18, self).__init__(resnet.BasicBlock, [2, 2, 2, 2], num_classes=num_classes * 2, **kwargs)
+        super(ResNet18, self).__init__(resnet.BasicBlock, [2, 2, 2, 2], num_classes=num_classes, **kwargs)
         if pretrained:
             pretrained_dict = dict(model_zoo.load_url(resnet.model_urls['resnet18']))
             del pretrained_dict['fc.weight']
@@ -16,10 +16,7 @@ class ResNet18(resnet.ResNet):
             model_dict = self.state_dict()
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
-        self.pred1 = nn.Conv2d(64, 212 * 2, 3)
-        self.pred2 = nn.Conv2d(128, 212 * 2, 3)
-        self.pred3 = nn.Conv2d(256, 212 * 2, 3)
-        self.pred4 = nn.Conv2d(512, 212 * 2, 3)
+
         self.sigmoid = nn.Sigmoid()
         self.soft_max = nn.Softmax(dim=-1)
 
