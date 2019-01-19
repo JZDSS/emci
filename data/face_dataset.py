@@ -66,6 +66,7 @@ class FaceDataset(Dataset):
         if self.phase == 'train':
             #image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
+
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         return image, np.reshape(landmarks, (-1))
 
