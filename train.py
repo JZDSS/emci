@@ -49,7 +49,7 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
 if __name__ == '__main__':
     metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
 
-    writer = SummaryWriter('logs/wing_loss_rfb/train')
+    writer = SummaryWriter('logs/wing_loss_res18/train')
     net = ResNet18().cuda()
     a = PoseDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train", pose=1)
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))

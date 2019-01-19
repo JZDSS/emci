@@ -26,7 +26,7 @@ current = None
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-writer = SummaryWriter('logs/wing_loss_rfb/valid')
+writer = SummaryWriter('logs/wing_loss_res18/valid')
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 while True:
     if current == saver.last_ckpt():

@@ -36,5 +36,6 @@ class ResNet18(resnet.ResNet):
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
+        x = self.fc(x)
         out = self.sigmoid(x)
         return out
