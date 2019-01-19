@@ -14,19 +14,18 @@ from layers.module.gyro_loss import GyroLoss
 
 from models.saver import Saver
 from models.resnet50 import ResNet50
-from models.resnet18 import ResNet18
 from utils.metrics import Metrics
 
 
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--lr', default=1e-5, type=float)
+parser.add_argument('-l', '--lr', default=1e-3, type=float)
 parser.add_argument('-b', '--batch_size', default=16, type=int)
 parser.add_argument('-c', '--cuda', default=True, type=bool)
 parser.add_argument('-n', '--n_gpu', default=1, type=int)
-parser.add_argument('-s', '--step', default=120000, type=int)
-parser.add_argument('-g', '--gamma', default=0.1, type=float)
+parser.add_argument('-s', '--step', default=2000, type=int)
+parser.add_argument('-g', '--gamma', default=0.95, type=float)
 parser.add_argument('-w', '--weight_decay', default=5e-4, type=float)
 
 args = parser.parse_args()
@@ -36,11 +35,10 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     # Adapted from PyTorch Imagenet example:
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
-    # if epoch < 6:
-    #     lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
-    # else:
-    #     lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
-    lr = args.lr * (gamma ** (iteration // step))
+    if epoch < 6:
+        lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
+    else:
+        lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
@@ -49,7 +47,7 @@ if __name__ == '__main__':
     metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
 
     writer = SummaryWriter('logs/wing_loss/train')
-    net = ResNet18().cuda()
+    net = ResNet50().cuda()
     a = FaceDataset("/data/icme", "/data/icme/train")
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
 
@@ -63,8 +61,8 @@ if __name__ == '__main__':
     running_loss = 0.0
     batch_size = args.batch_size
     epoch_size = len(a) // batch_size
-    epoch = start_iter // epoch_size + 1
-    for iteration in range(start_iter, 200001):
+    epoch = start_iter // epoch_size
+    for iteration in range(start_iter, 120001):
         if iteration % epoch_size == 0:
             # create batch iterator
             batch_iterator = iter(DataLoader(a, batch_size,
@@ -105,4 +103,4 @@ if __name__ == '__main__':
             state = net.state_dict()
             saver.save(state, iteration)
 
-    torch.save({'weights': net.state_dict()}, 'FinalModel.pth')
+    torch.save(net.state_dict())
