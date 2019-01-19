@@ -7,7 +7,7 @@ from data import utils
 
 
 class FaceDataset(Dataset):
-    def __init__(self, root_dir, bin_dir, phase='train', shape=(224, 224)):
+    def __init__(self, root_dir, bin_dir, shape=(224, 224)):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -47,7 +47,6 @@ class FaceDataset(Dataset):
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
-        self.phase = phase
 
     def __len__(self):
         return len(self.images)
@@ -63,9 +62,6 @@ class FaceDataset(Dataset):
         minx, miny, maxx, maxy = bbox
         image = image[miny:maxy+1, minx:maxx+1, :]
         image = cv2.resize(image, self.shape)
-        if self.phase == 'train':
-            image, landmarks = utils.random_flip(image, landmarks, 0.5)
-            image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         return image, np.reshape(landmarks, (-1))
 
