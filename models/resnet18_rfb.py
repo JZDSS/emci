@@ -76,55 +76,9 @@ class BasicRFB(nn.Module):
         else:
             short = self.shortcut(x)
             out = out*self.scale + short
-
-        return out
-
-
-class BasicRFB_a(nn.Module):
-
-    def __init__(self, in_planes, out_planes, stride=1, scale = 0.1):
-        super(BasicRFB_a, self).__init__()
-        self.scale = scale
-        self.out_channels = out_planes
-        inter_planes = in_planes //4
-
-
-        self.branch0 = nn.Sequential(
-                BasicConv(in_planes, inter_planes, kernel_size=1, stride=1),
-                BasicSepConv(inter_planes, kernel_size=3, stride=1, padding=1, dilation=1, relu=False)
-                )
-        self.branch1 = nn.Sequential(
-                BasicConv(in_planes, inter_planes, kernel_size=1, stride=1),
-                BasicConv(inter_planes, inter_planes, kernel_size=(3,1), stride=1, padding=(1,0)),
-                BasicSepConv(inter_planes, kernel_size=3, stride=1, padding=3, dilation=3, relu=False)
-                )
-        self.branch2 = nn.Sequential(
-                BasicConv(in_planes, inter_planes, kernel_size=1, stride=1),
-                BasicConv(inter_planes, inter_planes, kernel_size=(1,3), stride=stride, padding=(0,1)),
-                BasicSepConv(inter_planes, kernel_size=3, stride=1, padding=3, dilation=3, relu=False)
-                )
-        self.branch3 = nn.Sequential(
-                BasicConv(in_planes, inter_planes//2, kernel_size=1, stride=1),
-                BasicConv(inter_planes//2, (inter_planes//4)*3, kernel_size=(1,3), stride=1, padding=(0,1)),
-                BasicConv((inter_planes//4)*3, inter_planes, kernel_size=(3,1), stride=stride, padding=(1,0)),
-                BasicSepConv(inter_planes, kernel_size=3, stride=1, padding=5, dilation=5, relu=False)
-                )
-
-        self.ConvLinear = BasicConv(4*inter_planes, out_planes, kernel_size=1, stride=1, relu=False)
-        self.relu = nn.ReLU(inplace=False)
-
-    def forward(self,x):
-        x0 = self.branch0(x)
-        x1 = self.branch1(x)
-        x2 = self.branch2(x)
-        x3 = self.branch3(x)
-
-        out = torch.cat((x0,x1,x2,x3),1)
-        out = self.ConvLinear(out)
-        out = out*self.scale + x
         out = self.relu(out)
-
         return out
+
 
 class ResNet18(resnet.ResNet):
 
@@ -137,10 +91,14 @@ class ResNet18(resnet.ResNet):
             model_dict = self.state_dict()
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
-        self.pred1 = BasicRFB(64, 212 * 2)
-        self.pred2 = BasicRFB(128, 212 * 2)
-        self.pred3 = BasicRFB(256, 212 * 2)
-        self.pred4 = BasicRFB(512, 212 * 2)
+        self.pred1 = BasicRFB(64, 64)
+        self.pred2 = BasicRFB(128, 128)
+        self.pred3 = BasicRFB(256, 256)
+        self.pred4 = BasicRFB(512, 512)
+        self.pred1_c = nn.Conv2d(64, 212 * 2, 1)
+        self.pred2_c = nn.Conv2d(128, 212 * 2, 1)
+        self.pred3_c = nn.Conv2d(256, 212 * 2, 1)
+        self.pred4_c = nn.Conv2d(512, 212 * 2, 1)
         self.sigmoid = nn.Sigmoid()
         self.soft_max = nn.Softmax(dim=-1)
 
@@ -152,16 +110,16 @@ class ResNet18(resnet.ResNet):
         x = self.maxpool(x)
 
         x = self.layer1(x)
-        out.append(self.pred1(x))
+        out.append(self.pred1_c(self.pred1(x)))
 
         x = self.layer2(x)
-        out.append(self.pred2(x))
+        out.append(self.pred2_c(self.pred2(x)))
 
         x = self.layer3(x)
-        out.append(self.pred3(x))
+        out.append(self.pred3_c(self.pred3(x)))
 
         x = self.layer4(x)
-        out.append(self.pred4(x))
+        out.append(self.pred4_c(self.pred4(x)))
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)

@@ -21,7 +21,7 @@ from utils.metrics import Metrics
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--lr', default=1e-4, type=float)
+parser.add_argument('-l', '--lr', default=1e-5, type=float)
 parser.add_argument('-b', '--batch_size', default=16, type=int)
 parser.add_argument('-c', '--cuda', default=True, type=bool)
 parser.add_argument('-n', '--n_gpu', default=1, type=int)
@@ -36,11 +36,11 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
     # Adapted from PyTorch Imagenet example:
     # https://github.com/pytorch/examples/blob/master/imagenet/main.py
     """
-    # if epoch < 6:
-    #     lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
-    # else:
-    #     lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
-    lr = args.lr * (gamma ** (iteration // step))
+    if epoch < 6:
+        lr = 1e-8 + (args.lr-1e-8) * iteration / (epoch_size * 5)
+    else:
+        lr = args.lr * (gamma ** ((iteration - epoch_size * 5) // step))
+    # lr = args.lr * (gamma ** (iteration // step))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
     return lr
