@@ -18,7 +18,6 @@ class ResNet18(resnet.ResNet):
             self.load_state_dict(model_dict)
 
         self.sigmoid = nn.Sigmoid()
-        self.soft_max = nn.Softmax(dim=-1)
 
     def forward(self, x):
         x = self.conv1(x)
