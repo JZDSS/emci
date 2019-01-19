@@ -105,4 +105,4 @@ if __name__ == '__main__':
             state = net.state_dict()
             saver.save(state, iteration)
 
-    torch.save({'weights': net.state_dict()}, 'FinalModel.pth')
+    torch.save(net.state_dict())
