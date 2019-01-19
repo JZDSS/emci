@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from PIL import Image, ImageFile, ImageEnhance, ImageOps
+from PIL import Image, ImageEnhance
 
 def read_bbox(path):
     """
@@ -75,12 +75,17 @@ def random_gamma_trans(img, gamma_vari):
 
 #颜色抖动
 def random_color(img):
-    random_factor = np.random.randint(0, 31) / 10  #随机因子
+    img = Image.fromarray(img)
+
+    random_factor = np.random.uniform(0.8, 1.2)
     color_img = ImageEnhance.Color(img).enhance(random_factor)
-    random_factor = np.random.randint(10, 21) /10 #随机因子
+
+    random_factor = np.random.uniform(0.8, 1.2)
     brightness_img = ImageEnhance.Brightness(color_img).enhance(random_factor)
-    random_factor = np.random.randint(10, 21) / 10 #随机因子
+
+    random_factor = np.random.uniform(0.8, 1.2)
     contrast_img = ImageEnhance.Contrast(brightness_img).enhance(random_factor)
-    random_factor = np.random.randint(0, 31) / 10
+
+    random_factor = np.random.uniform(0.8, 1.2)
     sharpness_img = ImageEnhance.Sharpness(contrast_img).enhance(random_factor)
-    return sharpness_img
+    return np.array(sharpness_img)
