@@ -6,7 +6,6 @@ from torch.utils.data import Dataset
 from random import shuffle
 from data import utils
 
-
 class FaceDataset(Dataset):
     def __init__(self, root_dir, bin_dir, shape=(224, 224)):
         """
