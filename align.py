@@ -31,13 +31,13 @@ if __name__ == '__main__':
     if not os.path.exists(landmarks_out_dir):
         os.makedirs(landmarks_out_dir)
 
-    for img_path, bbox_path, landmark_path, f in zip(images, landmarks, bboxes, file_list):
+    for img_path, bbox_path, landmark_path, f in zip(images, bboxes, landmarks, file_list):
 
         bbox = utils.read_bbox(bbox_path)
-        landmarks = utils.read_landmarks(landmark_path)
+        landmark = utils.read_landmarks(landmark_path)
         image = cv2.imread(img_path)
 
-        image, landmark = aligner(image, landmarks, bbox)
+        image, landmark = aligner(image, landmark, bbox)
 
         cv2.imwrite(os.path.join(img_out_dir, f), image)
-        utils.save_landmarks(landmarks, os.path.join(landmarks_out_dir, f + '.txt'))
+        utils.save_landmarks(landmark, os.path.join(landmarks_out_dir, f + '.txt'))

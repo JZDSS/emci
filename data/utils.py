@@ -34,7 +34,7 @@ def save_landmarks(landmarks, file):
     :param landmarks: (106, 2)
     :param file: 文件
     """
-    with open(file) as f:
+    with open(file, 'w') as f:
         f.write("%d\n" % 106)
         for i in range(106):
             f.write('%f %f\n' % (landmarks[i, 0], landmarks[i, 1]))
