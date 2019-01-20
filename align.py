@@ -7,12 +7,12 @@ import cv2
 if __name__ == '__main__':
 
     root_dir = '/data/icme'
-    bin_dir = '/data/icme/train'
+    bin_dir = '/data/icme/valid'
     pose = 1
     aligner = Align('cache/mean_landmarks.pkl', scale=(128, 128), margin=(0.15, 0.1))
     bins = os.listdir(bin_dir)
     img_dir = os.path.join(root_dir, 'data/picture')
-    landmark_dir = os.path.join(root_dir, 'data/landmark')
+    landmark_dir = os.path.join(root_dir, 'data/pred_landmark')
     bbox_dir = os.path.join(root_dir, 'bbox')
     file_list = []
     for b in bins:
@@ -24,8 +24,8 @@ if __name__ == '__main__':
     landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
     bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
 
-    img_out_dir = '/data/icme/aligned/picture'
-    landmarks_out_dir = '/data/icme/aligned/landmark'
+    img_out_dir = '/data/icme/align_by_ldmk/picture'
+    landmarks_out_dir = '/data/icme/align_by_ldmk/landmark'
     if not os.path.exists(img_out_dir):
         os.makedirs(img_out_dir)
     if not os.path.exists(landmarks_out_dir):
