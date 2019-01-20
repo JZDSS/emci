@@ -36,6 +36,7 @@ class PoseDataset(Dataset):
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
         self.phase = phase
+        self.index = b
 
     def __len__(self):
         return len(self.images)
@@ -58,6 +59,10 @@ class PoseDataset(Dataset):
 
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         return image, np.reshape(landmarks, (-1))
+
+    def get_index(self):
+        return self.index
+
 
 
 if __name__ == '__main__':

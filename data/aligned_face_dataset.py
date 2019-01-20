@@ -6,17 +6,19 @@ from random import shuffle
 from data import utils
 
 
-class FaceDataset(Dataset):
-    def __init__(self, root_dir, bin_dir, phase='train', shape=(224, 224)):
+class AlignedFaceDataset(Dataset):
+    def __init__(self, root_dir, bin_dir, phase='train', shape=(224, 224), bbox_sclae=(128, 128)):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
         :param phase:
         :param transform:
         """
-        super(FaceDataset, self).__init__()
+        super(AlignedFaceDataset, self).__init__()
         self.shape = shape
         self.phase = phase
+        self.bbox_sclae = bbox_sclae
+
         # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
         bins = os.listdir(bin_dir)
         s = []
@@ -45,28 +47,22 @@ class FaceDataset(Dataset):
                     file_list.append(i)
         # 打乱顺序
         shuffle(file_list)
-        img_dir = os.path.join(root_dir, 'data/picture')
-        landmark_dir = os.path.join(root_dir, 'data/landmark')
-        bbox_dir = os.path.join(root_dir, 'bbox')
+        img_dir = os.path.join(root_dir, 'aligned/picture')
+        landmark_dir = os.path.join(root_dir, 'aligned/landmark')
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
-        self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
-
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, i):
         img_path = self.images[i]
-        bbox_path = self.bboxes[i]
         landmark_path = self.landmarks[i]
-        bbox = utils.read_bbox(bbox_path)
         landmarks = utils.read_landmarks(landmark_path)
-        landmarks = utils.norm_landmarks(landmarks, bbox)
         image = cv2.imread(img_path)
-        minx, miny, maxx, maxy = bbox
-        image = image[miny:maxy+1, minx:maxx+1, :]
         image = cv2.resize(image, self.shape)
+        landmarks[:, 0] /= self.bbox_sclae[0]
+        landmarks[:, 1] /= self.bbox_sclae[1]
         if self.phase == 'train':
             image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
