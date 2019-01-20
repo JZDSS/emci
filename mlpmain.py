@@ -21,7 +21,7 @@ class MLP(nn.Module):
 
 
 mlp = MLP()
-a = LBDataset("E:\correctdata", "E:\correctdata/train")
+a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
 criterion = nn.L1Loss()
 optimizer = opt.Adam(mlp.parameters(), lr=1e-3, weight_decay=5e-4)
