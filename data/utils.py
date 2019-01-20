@@ -54,6 +54,22 @@ def norm_landmarks(landmarks, bbox):
     landmarks[:, 1] = landmarks[:, 1] / h
     return landmarks
 
+def inv_norm_landmark(landmark, bbox):
+    """
+    注释有误
+    根据bounding box信息对landmarks坐标进行规范化。
+    :param landmarks: 形如(N, 2)的矩阵，其中N为landmark个数
+    :param bbox: [minx, miny, maxx, maxy]
+    :return: 规范化landmarks，形状同landmarks输入。
+    """
+    minx, miny, maxx, maxy = bbox
+    w = float(maxx - minx)
+    h = float(maxy - miny)
+    landmark[:, 0] = landmark[:, 0] * w
+    landmark[:, 1] = landmark[:, 1] * h
+    landmark += [minx, miny]
+    return landmark
+
 def draw_landmarks(image, landmarks, color):
     landmarks = np.reshape(landmarks, (106, 2))
     image = np.transpose(image, (1, 2, 0)).astype(np.uint8).copy()

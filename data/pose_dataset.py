@@ -11,7 +11,7 @@ class PoseDataset(Dataset):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
-        :param pose: int, 大于等于1，小于等于bin的数量
+        :param pose: int, 大于等于0，小于bin的数量
         :param phase:
         :param shape:
         """
@@ -19,10 +19,11 @@ class PoseDataset(Dataset):
         super(PoseDataset, self).__init__()
         self.shape = shape
         # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
-        bins = os.listdir(bin_dir)
+        # bins = os.listdir(bin_dir)
 
         file_list = []
-        b = bins[pose]
+        # b = bins[pose]
+        b = '%d' % pose
         curr = os.path.join(bin_dir, b)
         files = os.listdir(curr)
         for i in files:

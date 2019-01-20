@@ -4,22 +4,6 @@ import pdb
 import cv2
 
 
-# def inv_norm_landmark(landmark, bbox):
-#     """
-#     注释有误
-#     根据bounding box信息对landmarks坐标进行规范化。
-#     :param landmarks: 形如(N, 2)的矩阵，其中N为landmark个数
-#     :param bbox: [minx, miny, maxx, maxy]
-#     :return: 规范化landmarks，形状同landmarks输入。
-#     """
-#     minx, miny, maxx, maxy = bbox
-#     w = float(maxx - minx)
-#     h = float(maxy - miny)
-#     landmark[:, 0] = landmark[:, 0] * w
-#     landmark[:, 1] = landmark[:, 1] * h
-#     landmark += [minx, miny]
-#     return landmark
-
 class Align(object):
 
     def __init__(self, reference_path='../cache/mean_landmarks.pkl', scale=(128, 128), margin=(0.15, 0.1)):

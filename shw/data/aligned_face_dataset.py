@@ -1,7 +1,9 @@
+# _*_ coding:utf-8 _*_
 import os
 import cv2
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+
 from random import shuffle
 from data import utils
 
@@ -27,11 +29,12 @@ class AlignedFaceDataset(Dataset):
             s.append(len(os.listdir(curr)))
 
         # 所有pose都采样到约max_n张，1.2倍是我随便设置的
-        max_n = int(max(s) * 1.2)
+        max_n = int(max(s) * 1.4)
         file_list = []
         for b in bins:
             curr = os.path.join(bin_dir, b)
             files = os.listdir(curr)
+
             for i in files:
                 if self.phase == 'train':
                     p = max_n / len(files)
@@ -47,8 +50,8 @@ class AlignedFaceDataset(Dataset):
                     file_list.append(i)
         # 打乱顺序
         shuffle(file_list)
-        img_dir = os.path.join(root_dir, 'aligned/picture')
-        landmark_dir = os.path.join(root_dir, 'aligned/landmark')
+        img_dir = os.path.join(root_dir, 'aligned\picture')
+        landmark_dir = os.path.join(root_dir, 'aligned\landmark')
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
 
@@ -56,6 +59,7 @@ class AlignedFaceDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, i):
+
         img_path = self.images[i]
         landmark_path = self.landmarks[i]
         landmarks = utils.read_landmarks(landmark_path)
@@ -63,7 +67,9 @@ class AlignedFaceDataset(Dataset):
         image = cv2.resize(image, self.shape)
         landmarks[:, 0] /= self.bbox_sclae[0]
         landmarks[:, 1] /= self.bbox_sclae[1]
+
         if self.phase == 'train':
+
             image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
             image = utils.random_color(image)
@@ -73,9 +79,10 @@ class AlignedFaceDataset(Dataset):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    a = FaceDataset("/data/icme", "/data/icme/train")
+
+    a = FaceDataset("\icme", "\data\icme\\train")
     b = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
+
     while True:
         images, landmarks = next(b)
         image = images[0, :]
