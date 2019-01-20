@@ -46,7 +46,6 @@ if __name__ == "__main__":
         print('pose:', pose + 1, 'len:', len(a), 'index:', index)
 
     M =len(GT_list)
-    K = int(M / 106) * 106#舍弃最后几张的图片以便能被106整除
     G = []
     P = []
     for i in range(M):
@@ -56,9 +55,6 @@ if __name__ == "__main__":
     PR_array = np.array(P)
 
     N = GT_array.shape[1]#关键点数
-    # temp = math.ceil(float(M / 106))
-    # num = temp * 106 - M
-
 
     NME = np.zeros(N)
     AUC = np.zeros(N)
@@ -68,16 +64,10 @@ if __name__ == "__main__":
         for m in range(M):
             GT_list.append(GT_array[m, n, :])
             PR_list.append(PR_array[m, n, :])
-        GT_list = GT_list[0: K]
-        PR_list = PR_list[0: K]
         GT = np.array(GT_list)
         PR = np.array(PR_list)
-        #mean = (GT.mean(axis=0) + PR.mean(axis=0)) / 2
-        #mean_array = np.array([mean] * num)
-        # GT = np.r_[GT, mean_array]
-        # PR = np.r_[PR, mean_array]
-        GT = np.reshape(GT, (-1, 106, 2))
-        PR = np.reshape(PR, (-1, 106, 2))
+        GT = np.reshape(GT, (1, -1, 2))
+        PR = np.reshape(PR, (1, -1, 2))
         nmes = metrics.nme.update(GT, PR)
         auc = metrics.auc.update(nmes)
         nme = np.mean(nmes)
@@ -85,6 +75,8 @@ if __name__ == "__main__":
         AUC[n] = auc
         metrics.clear()
 
+    print("NME:", NME)
+    print("AUC:", AUC)
     x = np.linspace(1, 106, 106)
     plt.plot(x, NME, )
     plt.title('NME')
