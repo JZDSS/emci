@@ -1,8 +1,7 @@
-from data.face_dataset import FaceDataset
+from data.aligned_face_dataset import AlignedFaceDataset
 import torch
 from models.saver import Saver
 from models import dense201
-from models import resnet18
 import numpy as np
 from utils.metrics import Metrics
 from data import utils
@@ -10,10 +9,10 @@ import cv2
 import os
 
 
-net = resnet18.ResNet18().cuda()
+net = dense201.Dense201().cuda()
 
 #PATH = './ckpt'
-a = FaceDataset("/data/icme", "/data/icme/valid", phase='eval')
+a = AlignedFaceDataset("/data/icme", "/data/icme/valid", phase='eval')
 #Saver.dir=PATH
 saver = Saver('backup', 'model')
 current = None
@@ -21,24 +20,26 @@ net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'model-9200.pth'
+model_name = 'aligned_densenet-166400.pth'
 saver.load(net, model_name)
 
 
 all_pr = []
 all_gt = []
-save_dir = '/data/icme/data/pred_landmark'
+# save_dir = '/data/icme/data/pred_landmark'
 for i in range(len(a)):
     img_path = a.images[i]
     name = img_path.split('/')[-1]
-    bbox_path = a.bboxes[i]
+    # bbox_path = a.bboxes[i]
     landmark_path = a.landmarks[i]
-    bbox = utils.read_bbox(bbox_path)
+    # bbox = utils.read_bbox(bbox_path)
     landmarks = utils.read_landmarks(landmark_path)
-    landmarks = utils.norm_landmarks(landmarks, bbox)
+    landmarks[:, 0] /= a.bbox_sclae[0]
+    landmarks[:, 1] /= a.bbox_sclae[1]
+    # landmarks = utils.norm_landmarks(landmarks, bbox)
     image = cv2.imread(img_path)
-    minx, miny, maxx, maxy = bbox
-    image = image[miny:maxy + 1, minx:maxx + 1, :]
+    # minx, miny, maxx, maxy = bbox
+    # image = image[miny:maxy + 1, minx:maxx + 1, :]
     image = cv2.resize(image, a.shape)
 
     image = np.transpose(image, (2, 0, 1)).astype(np.float32)
@@ -56,9 +57,9 @@ for i in range(len(a)):
     all_pr.append(pr)
     all_gt.append(gt)
     # save prediction
-    pr = np.reshape(pr.copy(), (106, 2))
-    pr = utils.inv_norm_landmark(pr, bbox)
-    utils.save_landmarks(pr, os.path.join(save_dir, name + '.txt'))
+    # pr = np.reshape(pr.copy(), (106, 2))
+    # pr = utils.inv_norm_landmark(pr, bbox)
+    # utils.save_landmarks(pr, os.path.join(save_dir, name + '.txt'))
 
 all_gt = np.concatenate(all_gt, axis=0)
 all_pr = np.concatenate(all_pr, axis=0)
