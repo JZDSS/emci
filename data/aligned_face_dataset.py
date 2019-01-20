@@ -16,6 +16,9 @@ class AlignedFaceDataset(Dataset):
         """
         super(AlignedFaceDataset, self).__init__()
         self.shape = shape
+        self.phase = phase
+        self.bbox_sclae = bbox_sclae
+
         # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
         bins = os.listdir(bin_dir)
         s = []
@@ -30,23 +33,24 @@ class AlignedFaceDataset(Dataset):
             curr = os.path.join(bin_dir, b)
             files = os.listdir(curr)
             for i in files:
-                p = max_n / len(files)
-                # 万一出现max_n是某个pose数量的2倍以上
-                while p > 1:
-                    file_list.append(i)
-                    p -= 1
-                # 掷色子决定是否再次重采样
-                dice = np.random.uniform(0, 1)
-                if dice < p:
+                if self.phase == 'train':
+                    p = max_n / len(files)
+                    # 万一出现max_n是某个pose数量的2倍以上
+                    while p > 1:
+                        file_list.append(i)
+                        p -= 1
+                    # 掷色子决定是否再次重采样
+                    dice = np.random.uniform(0, 1)
+                    if dice < p:
+                        file_list.append(i)
+                elif self.phase == 'eval':
                     file_list.append(i)
         # 打乱顺序
         shuffle(file_list)
-        img_dir = os.path.join(root_dir, 'picture')
-        landmark_dir = os.path.join(root_dir, 'landmark')
+        img_dir = os.path.join(root_dir, 'aligned/picture')
+        landmark_dir = os.path.join(root_dir, 'aligned/landmark')
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
-        self.phase = phase
-        self.bbox_sclae = bbox_sclae
 
     def __len__(self):
         return len(self.images)
