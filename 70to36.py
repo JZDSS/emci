@@ -27,7 +27,7 @@ class MLP(nn.Module):
         return x
 
 mlp = MLP()
-a = LBDataset("/home/orion/correctdata", "/home/orion/correctdata/train")
+a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
 
 criterion = nn.L1Loss()
 optimizer = opt.Adam(mlp.parameters(), lr=1e-3, weight_decay=5e-4)
