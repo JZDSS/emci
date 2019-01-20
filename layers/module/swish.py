@@ -9,5 +9,5 @@ class Swish(nn.Module):
         super(Swish, self).__init__()
 
     def forward(self, x):
-        x = x * nn.Sigmoid(x)
+        x = x * nn.Sigmoid()(x)
         return x
