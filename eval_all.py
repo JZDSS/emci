@@ -21,7 +21,7 @@ net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'model-9200.pth'
+model_name = 'resnet18-9200.pth'
 saver.load(net, model_name)
 
 

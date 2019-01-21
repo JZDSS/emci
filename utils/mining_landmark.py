@@ -16,7 +16,7 @@ metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 
 if __name__ == "__main__":
     net = ResNet18().cuda()
-    net.load_state_dict(torch.load('../backup/model-9200.pth'))
+    net.load_state_dict(torch.load('../backup/resnet18-9200.pth'))
     net.eval()
     PR_list = []
     GT_list = []
