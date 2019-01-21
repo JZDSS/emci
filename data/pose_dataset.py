@@ -18,8 +18,6 @@ class PoseDataset(Dataset):
 
         super(PoseDataset, self).__init__()
         self.shape = shape
-        # bin_dir为pdb.py中的图片输出目录（即cmd里的目录），root_dir为数据集根目录
-        # bins = os.listdir(bin_dir)
 
         file_list = []
         # b = bins[pose]

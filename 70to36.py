@@ -1,4 +1,4 @@
-from data.lb_dataset import LBDataset
+from data.face_dataset import FaceDataset
 from torch.utils.data import DataLoader
 from models.resnet18 import ResNet18
 import torchvision.models as models
@@ -21,13 +21,13 @@ class MLP(nn.Module):
 
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
+        x = F.relu()(self.fc1(x)) #self.fc1(x)就是nn.Linear(140,800)(x)
+        x = F.relu()(self.fc2(x))
         x = self.fc3(x)
         return x
 
 mlp = MLP()
-a = LBDataset("/home/orion/correctdata", "/home/orion/correctdata/train")
+a = FaceDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
 
 criterion = nn.L1Loss()
 optimizer = opt.Adam(mlp.parameters(), lr=1e-3, weight_decay=5e-4)
@@ -37,21 +37,14 @@ batch_iterator = iter(DataLoader(a, batch_size,
 running_loss = 0.0
 for iteration in range(10000):
     images, landmarks = next(batch_iterator)
-    images = images.cuda()
     landmarks = landmarks.cuda()
-    with torch.no_grad():
-        out = net.forward(images)
-    pr = out.cpu().data.numpy()
-
-    out = mlp(pr[0:70]).double()
+    out = mlp(landmarks[0:70]).double()
 
     optimizer.zero_grad()
-    loss2 = criterion(out, landmarks[70:106])
-    loss2.backward()
-
+    loss = criterion(out, landmarks[70:106])
+    loss.backward()
     optimizer.step()
-    loss1 = criterion(pr[0:70], landmarks[0:70])
-    loss = loss1 + loss2
+
     running_loss += loss.item()
     if iteration % 100 == 99:
         print('%5d loss: %.3f' %
