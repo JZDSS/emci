@@ -62,8 +62,8 @@ class LBDataset(Dataset):
         image = cv2.imread(img_path)
         bbox = np.array(bbox).astype(np.double)
         h, w, _ = image.shape
-        landmarks[0] = landmarks[0] / h
-        landmarks[1] = landmarks[1] / w
+        landmarks[:,0] = landmarks[:,0] / h
+        landmarks[:,1] = landmarks[:,1] / w
         bbox[[0, 2]] /= w
         bbox[[1, 3]] /= h
         # image = image[miny:maxy+1, minx:maxx+1, :]
