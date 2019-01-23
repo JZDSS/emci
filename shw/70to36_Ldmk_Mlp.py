@@ -29,27 +29,26 @@ class MLP(nn.Module):
 mlp = MLP().double()
 # print(mlp)
 # a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
-a = LdmkDataset(os.path.join("Corrected_data", "landmark"))
-batch_loader = DataLoader(a, batch_size=45, shuffle=True, num_workers=0)
+a = LdmkDataset(os.path.join("/home/orion/correctdata/data", "landmark"))
+batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
 # batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
 criterion = nn.MSELoss()
-optimizer = opt.Adam(mlp.parameters(), lr=2e-3, weight_decay=5e-4)
-#
-for epoch in range(10000):  # loop over the dataset multiple times
-    running_loss = 0.0
-    iteration = 0
-    for inputs, labels in iter(batch_loader):
+optimizer = opt.Adam(mlp.parameters(), lr=1e-3, weight_decay=5e-4)
+
+running_loss = 0.0
+for iteration in range(10000):
+    inputs, labels = next(batch_iterator)
         # print(inputs, labels)
         # inputs, labels = next(batch_iterator)
         # landmarks = landmarks  # .cuda
-        out = mlp(inputs).double()
+    out = mlp(inputs).double()
         # print(out.size(), labels.size())
-        optimizer.zero_grad()
-        loss = criterion(out, labels)
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.item()
-        print('\r[%d, %5d] loss: %.3f' %
-                (epoch + 1, iteration + 1, running_loss / 45), end=" ")
+    optimizer.zero_grad()
+    loss = criterion(out, labels)
+    loss.backward()
+    optimizer.step()
+    running_loss += loss.item()
+    if iteration % 100 == 99:
+        print('\r%5d loss: %.3f' %
+              (iteration + 1, running_loss / 100), end="\n")
         running_loss = 0.0
-        iteration += 1
