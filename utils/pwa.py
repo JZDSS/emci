@@ -6,7 +6,7 @@ import cv2
 
 def pwa(image, src, dst, shape):
     """
-    :param image: aligned image
+    :param image: aligned image or cropped image
     :param src: normalized src landmarks
     :param dst: normalized dst landmarks
     :param shape: output shape, [rows, cols]
