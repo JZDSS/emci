@@ -31,7 +31,7 @@ def main():
         return t[0] + t[1]
 
     # 我偷懒了，所以最好不要写成'/home/yqi/data/icme/'
-    root_dir = '/home/orion/datasets/icme/'
+    root_dir = '/data/icme'
 
     lamdmark_dir = os.path.join(root_dir, 'data/landmark')
     image_dir = os.path.join(root_dir, 'data/picture')

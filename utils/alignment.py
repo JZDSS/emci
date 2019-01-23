@@ -27,11 +27,6 @@ class Align(object):
         self.reference[:, 0] = (k_x * self.reference[:, 0] + b_x) / (2 * margin_x + 1) * scale[0]
         self.reference[:, 1] = (k_y * self.reference[:, 1] + b_y) / (2 * margin_y + 1) * scale[1]
         self.scale = scale
-        # plt.subplot(1, 2, 2)
-        # plt.scatter(self.reference[:, 0], self.reference[:, 1])
-        # plt.xlim(0, scale[0])
-        # plt.ylim(0, scale[1])
-        # plt.show()
 
     def __call__(self, image, landmarks, bbox):
         """
@@ -48,42 +43,53 @@ class Align(object):
         landmarks = x @ T
 
         image = cv2.warpAffine(image, np.transpose(T), self.scale)
-        return image, landmarks
+        return image, landmarks, T
+
+    def inverse(self, landmarks, T):
+        """
+        返回到对齐前的坐标系
+        :return: 原坐标系中对应的landmark坐标
+        """
+        landmarks = (landmarks - T[2:, :]) @ np.linalg.inv(T[0:2, ])
+        return landmarks
+
 
 # 示例代码：
-# import os
-# root_dir = '/data/icme'
-# bin_dir = '/data/icme/train'
-# pose = 1
-# a = Align()
-# bins = os.listdir(bin_dir)
-#
-# file_list = []
-# b = bins[pose]
-# curr = os.path.join(bin_dir, b)
-# files = os.listdir(curr)
-# for i in files:
-#     file_list.append(i)
-# for i in range(100):
-#     img_dir = os.path.join(root_dir, 'data/picture')
-#     landmark_dir = os.path.join(root_dir, 'data/landmark')
-#     bbox_dir = os.path.join(root_dir, 'bbox')
-#     images = [os.path.join(img_dir, f) for f in file_list]
-#     landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
-#     bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
-#     img_path = images[i]
-#     bbox_path = bboxes[i]
-#     landmark_path = landmarks[i]
-#     bbox = ul.read_bbox(bbox_path)
-#     landmarks = ul.read_landmarks(landmark_path)
-#     image = cv2.imread(img_path)
-#
-#     image, landmark = a(image, landmarks, bbox)
-#
-#     plt.imshow(image)
-#     plt.scatter(landmark[:, 0], landmark[:, 1])
-#     # plt.scatter(self.reference[:, 0], self.reference[:, 1])
-#     # plt.plot(bbox[:, 0], bbox[:, 1])
-#     plt.xlim(0, a.scale[0])
-#     plt.ylim(a.scale[1], 0)
-#     plt.show()
+import os
+import matplotlib.pyplot as plt
+import data.utils as ul
+root_dir = '/data/icme'
+bin_dir = '/data/icme/train'
+pose = 1
+a = Align()
+bins = os.listdir(bin_dir)
+
+file_list = []
+b = bins[pose]
+curr = os.path.join(bin_dir, b)
+files = os.listdir(curr)
+for i in files:
+    file_list.append(i)
+for i in range(100):
+    img_dir = os.path.join(root_dir, 'data/picture')
+    landmark_dir = os.path.join(root_dir, 'data/landmark')
+    bbox_dir = os.path.join(root_dir, 'bbox')
+    images = [os.path.join(img_dir, f) for f in file_list]
+    landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
+    bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
+    img_path = images[i]
+    bbox_path = bboxes[i]
+    landmark_path = landmarks[i]
+    bbox = ul.read_bbox(bbox_path)
+    landmarks = ul.read_landmarks(landmark_path)
+    image = cv2.imread(img_path)
+
+    image, landmark = a(image, landmarks, bbox)
+
+    plt.imshow(image)
+    plt.scatter(landmark[:, 0], landmark[:, 1])
+    # plt.scatter(self.reference[:, 0], self.reference[:, 1])
+    # plt.plot(bbox[:, 0], bbox[:, 1])
+    plt.xlim(0, a.scale[0])
+    plt.ylim(a.scale[1], 0)
+    plt.show()
