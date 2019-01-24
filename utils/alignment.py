@@ -81,7 +81,7 @@ for i in range(100):
     bbox_path = bboxes[i]
     landmark_path = landmarks[i]
     bbox = ul.read_bbox(bbox_path)
-    landmarks = ul.read_landmarks(landmark_path)
+    landmarks = ul.read_mat(landmark_path)
     image = cv2.imread(img_path)
 
     image, landmark = a(image, landmarks, bbox)
