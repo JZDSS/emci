@@ -8,16 +8,14 @@ from shw.LandmarkDataset import LdmkDataset
 import os
 from wing_loss import WingLoss
 
-import torch
-
 class MLP(nn.Module):
     def __init__(self):
         super(MLP, self).__init__()
-        # 前70个landmark点，网络要重写
-        self.fc1 = nn.Linear(140, 500)
-        self.fc2 = nn.Linear(500, 225)
-        self.fc3 = nn.Linear(225, 125)
-        self.fc4 = nn.Linear(125, 72)
+        # 前71个landmark点，网络要重写
+        self.fc1 = nn.Linear(142, 600)
+        self.fc2 = nn.Linear(600, 300)
+        self.fc3 = nn.Linear(300, 150)
+        self.fc4 = nn.Linear(150, 70)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -26,19 +24,16 @@ class MLP(nn.Module):
         x = self.fc4(x)
         return x
 
-
 mlp = MLP().double()
-
-# a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
-a = LdmkDataset(os.path.join("icme","data","landmark"))
+a = LdmkDataset(os.path.join("icme", "data", "landmark"))
 batch_loader = DataLoader(a, batch_size=40, shuffle=True, num_workers=0)
 # batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
-criterion = nn.L1Loss()
+# criterion = nn.L1Loss()
 # criterion = nn.MSELoss()
-# criterion = WingLoss(10, 2)
+criterion = WingLoss(5, 2)
 optimizer = opt.Adam(mlp.parameters(), lr=2e-3, weight_decay=5e-4)
-#
-for epoch in range(5000):  # loop over the dataset multiple times
+
+for epoch in range(1000):  # loop over the dataset multiple times
 
     running_loss = 0.0
     iteration = 0
