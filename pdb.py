@@ -90,6 +90,7 @@ def main():
     temp = (aligned - np.mean(aligned, axis=0))
     covariance = 1.0 / len(aligned) * temp.T.dot(temp)
     U, S, V = np.linalg.svd(covariance)
+    joblib.dump(U, 'cache/u.pkl', compress=3)
     pc = temp.dot(U[:, 0])
 
     plt.hist(pc,bins=11)

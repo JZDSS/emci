@@ -2,6 +2,7 @@ import os
 from utils.alignment import Align
 from data import utils
 import cv2
+import numpy as np
 
 
 if __name__ == '__main__':
@@ -40,6 +41,10 @@ if __name__ == '__main__':
 
         image, landmark, T = aligner(image, landmark, bbox)
 
+        # T[2, 0] /= image.shape[1]
+        # T[2, 1] /= image.shape[0]
+        # T[0:2, :] = np.linalg.inv(T[0:2, :])
+
         cv2.imwrite(os.path.join(img_out_dir, f), image)
         utils.save_landmarks(landmark, os.path.join(landmarks_out_dir, f + '.txt'))
-        utils.save_T(landmark, os.path.join(t_out_dir, f + '.txt'))
+        utils.save_T(T, os.path.join(t_out_dir, f + '.txt'))

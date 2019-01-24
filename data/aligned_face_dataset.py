@@ -47,10 +47,12 @@ class AlignedFaceDataset(Dataset):
                     file_list.append(i)
         # 打乱顺序
         shuffle(file_list)
-        img_dir = os.path.join(root_dir, 'aligned/picture')
-        landmark_dir = os.path.join(root_dir, 'aligned/landmark')
+        img_dir = os.path.join(root_dir, 'align_by_ldmk/picture')
+        landmark_dir = os.path.join(root_dir, 'data/landmark')
+        t_dir = os.path.join(root_dir, 'align_by_ldmk/T')
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
+        self.ts = [os.path.join(t_dir, f + '.txt') for f in file_list]
 
     def __len__(self):
         return len(self.images)
@@ -58,7 +60,10 @@ class AlignedFaceDataset(Dataset):
     def __getitem__(self, i):
         img_path = self.images[i]
         landmark_path = self.landmarks[i]
+        t_path = self.ts[i]
         landmarks = utils.read_mat(landmark_path)
+        t = utils.read_mat(t_path)
+        landmarks = landmarks @ t[0:2, :] + t[2, :]
         image = cv2.imread(img_path)
         image = cv2.resize(image, self.shape)
         landmarks[:, 0] /= self.bbox_sclae[0]
