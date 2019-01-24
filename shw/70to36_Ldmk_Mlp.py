@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import torch.optim as opt
 from shw.LandmarkDataset import LdmkDataset
 import os
-from wing_loss import WingLoss
+from layers.module.wing_loss import WingLoss
 
 import torch
 
@@ -32,34 +32,25 @@ mlp = MLP().double()
 # a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
 
 a = LdmkDataset(os.path.join("/home/orion/correctdata/data", "landmark"))
-batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
-# batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
-criterion = nn.MSELoss()
-optimizer = opt.Adam(mlp.parameters(), lr=1e-3, weight_decay=5e-4)
 
-running_loss = 0.0
-for iteration in range(10000):
-    inputs, labels = next(batch_iterator
-a = LdmkDataset(os.path.join("icme","data","landmark"))
-batch_loader = DataLoader(a, batch_size=40, shuffle=True, num_workers=0)
+batch_loader = DataLoader(a, batch_size=1, shuffle=True, num_workers=0)
 # batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
-criterion = nn.L1Loss()
+# criterion = nn.L1Loss()
 # criterion = nn.MSELoss()
-# criterion = WingLoss(10, 2)
+criterion = WingLoss(10, 2)
 optimizer = opt.Adam(mlp.parameters(), lr=2e-3, weight_decay=5e-4)
-#
-for epoch in range(5000):  # loop over the dataset multiple times
+running_loss = 0.0
+# for epoch in range(5000):  # loop over the dataset multiple times
 
-    running_loss = 0.0
-    iteration = 0
-    for inputs, labels in iter(batch_loader):
->>>>>>> c8a1ce69c461068cc79903be8cf09123666ea4ac
+iteration = 0
+for inputs, labels in iter(batch_loader):
+
         # print(inputs, labels)
         # inputs, labels = next(batch_iterator)
         # landmarks = landmarks  # .cuda
     out = mlp(inputs).double()
         # print(out.size(), labels.size())
-<<<<<<< HEAD
+
     optimizer.zero_grad()
     loss = criterion(out, labels)
     loss.backward()
@@ -68,13 +59,5 @@ for epoch in range(5000):  # loop over the dataset multiple times
     if iteration % 100 == 99:
         print('\r%5d loss: %.3f' %
               (iteration + 1, running_loss / 100), end="\n")
-=======
-        optimizer.zero_grad()
-        loss = criterion(out, labels)
-        loss.backward()
-        optimizer.step()
-        running_loss += loss.item()
-        print('\r[%d, %5d] loss: %.4f' %
-                (epoch + 1, iteration + 1, running_loss / 100), end=" ")
->>>>>>> c8a1ce69c461068cc79903be8cf09123666ea4ac
         running_loss = 0.0
+    iteration += 1
