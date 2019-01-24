@@ -56,7 +56,7 @@ class FaceDataset(Dataset):
         bbox_path = self.bboxes[i]
         landmark_path = self.landmarks[i]
         bbox = utils.read_bbox(bbox_path)
-        landmarks = utils.read_landmarks(landmark_path)
+        landmarks = utils.read_mat(landmark_path)
         landmarks = utils.norm_landmarks(landmarks, bbox)
         image = cv2.imread(img_path)
         # minx, miny, maxx, maxy = bbox

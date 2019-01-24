@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     img_out_dir = '/data/icme/align_by_ldmk/picture'
     landmarks_out_dir = '/data/icme/align_by_ldmk/landmark'
+    t_out_dir = '/data/icme/align_by_ldmk/T'
     if not os.path.exists(img_out_dir):
         os.makedirs(img_out_dir)
     if not os.path.exists(landmarks_out_dir):
@@ -34,10 +35,11 @@ if __name__ == '__main__':
     for img_path, bbox_path, landmark_path, f in zip(images, bboxes, landmarks, file_list):
 
         bbox = utils.read_bbox(bbox_path)
-        landmark = utils.read_landmarks(landmark_path)
+        landmark = utils.read_mat(landmark_path)
         image = cv2.imread(img_path)
 
-        image, landmark = aligner(image, landmark, bbox)
+        image, landmark, T = aligner(image, landmark, bbox)
 
         cv2.imwrite(os.path.join(img_out_dir, f), image)
         utils.save_landmarks(landmark, os.path.join(landmarks_out_dir, f + '.txt'))
+        utils.save_T(landmark, os.path.join(t_out_dir, f + '.txt'))

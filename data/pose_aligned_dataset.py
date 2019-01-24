@@ -39,7 +39,7 @@ class PoseAlignedDataset(Dataset):
     def __getitem__(self, i):
         img_path = self.images[i]
         landmark_path = self.landmarks[i]
-        landmarks = utils.read_landmarks(landmark_path)
+        landmarks = utils.read_mat(landmark_path)
         image = cv2.imread(img_path)
         image = cv2.resize(image, self.shape)
         landmarks[:, 0] /= self.bbox_sclae[0]

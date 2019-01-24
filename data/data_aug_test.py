@@ -3,7 +3,7 @@ import cv2
 from data import utils
 
 imgdir = '/data/icme/data/picture/AFW_5452623_1_5.jpg'
-landmarks = utils.read_landmarks('/data/icme/data/landmark/AFW_5452623_1_5.jpg.txt')
+landmarks = utils.read_mat('/data/icme/data/landmark/AFW_5452623_1_5.jpg.txt')
 bbox = utils.read_bbox('/data/icme/bbox/AFW_5452623_1_5.jpg.rect')
 img = cv2.imread(imgdir)
 minx, miny, maxx, maxy = bbox
