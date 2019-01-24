@@ -54,42 +54,45 @@ class Align(object):
         return landmarks
 
 
-# 示例代码：
-import os
-import matplotlib.pyplot as plt
-import data.utils as ul
-root_dir = '/data/icme'
-bin_dir = '/data/icme/train'
-pose = 1
-a = Align()
-bins = os.listdir(bin_dir)
+if __name__ == '__main__':
 
-file_list = []
-b = bins[pose]
-curr = os.path.join(bin_dir, b)
-files = os.listdir(curr)
-for i in files:
-    file_list.append(i)
-for i in range(100):
-    img_dir = os.path.join(root_dir, 'data/picture')
-    landmark_dir = os.path.join(root_dir, 'data/landmark')
-    bbox_dir = os.path.join(root_dir, 'bbox')
-    images = [os.path.join(img_dir, f) for f in file_list]
-    landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
-    bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
-    img_path = images[i]
-    bbox_path = bboxes[i]
-    landmark_path = landmarks[i]
-    bbox = ul.read_bbox(bbox_path)
-    landmarks = ul.read_landmarks(landmark_path)
-    image = cv2.imread(img_path)
 
-    image, landmark = a(image, landmarks, bbox)
+    # 示例代码：
+    import os
+    import matplotlib.pyplot as plt
+    import data.utils as ul
+    root_dir = '/data/icme'
+    bin_dir = '/data/icme/train'
+    pose = 1
+    a = Align()
+    bins = os.listdir(bin_dir)
 
-    plt.imshow(image)
-    plt.scatter(landmark[:, 0], landmark[:, 1])
-    # plt.scatter(self.reference[:, 0], self.reference[:, 1])
-    # plt.plot(bbox[:, 0], bbox[:, 1])
-    plt.xlim(0, a.scale[0])
-    plt.ylim(a.scale[1], 0)
-    plt.show()
+    file_list = []
+    b = bins[pose]
+    curr = os.path.join(bin_dir, b)
+    files = os.listdir(curr)
+    for i in files:
+        file_list.append(i)
+    for i in range(100):
+        img_dir = os.path.join(root_dir, 'data/picture')
+        landmark_dir = os.path.join(root_dir, 'data/landmark')
+        bbox_dir = os.path.join(root_dir, 'bbox')
+        images = [os.path.join(img_dir, f) for f in file_list]
+        landmarks = [os.path.join(landmark_dir, f + '.txt') for f in file_list]
+        bboxes = [os.path.join(bbox_dir, f + '.rect') for f in file_list]
+        img_path = images[i]
+        bbox_path = bboxes[i]
+        landmark_path = landmarks[i]
+        bbox = ul.read_bbox(bbox_path)
+        landmarks = ul.read_mat(landmark_path)
+        image = cv2.imread(img_path)
+
+        image, landmark = a(image, landmarks, bbox)
+
+        plt.imshow(image)
+        plt.scatter(landmark[:, 0], landmark[:, 1])
+        # plt.scatter(self.reference[:, 0], self.reference[:, 1])
+        # plt.plot(bbox[:, 0], bbox[:, 1])
+        plt.xlim(0, a.scale[0])
+        plt.ylim(a.scale[1], 0)
+        plt.show()

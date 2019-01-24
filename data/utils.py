@@ -13,7 +13,7 @@ def read_bbox(path):
     return [int(ll) for ll in l]
 
 
-def read_landmarks(path):
+def read_mat(path):
     """
     从文件读取landmark坐标
     :param path: txt文件路径
@@ -24,7 +24,7 @@ def read_landmarks(path):
         n = int(f.readline())
         for i in range(n):
             pt = f.readline().strip('\n').split(' ')
-            pt = [int(float(p)) for p in pt]
+            pt = [float(p) for p in pt]
             landmarks.append(pt)
     return np.array(landmarks, dtype=np.float32)
 
@@ -38,6 +38,15 @@ def save_landmarks(landmarks, file):
         f.write("%d\n" % 106)
         for i in range(106):
             f.write('%f %f\n' % (landmarks[i, 0], landmarks[i, 1]))
+
+
+def save_T(T, file):
+    with open(file, 'w') as f:
+        f.write("%d\n" % 3)
+        for i in range(3):
+            f.write('%f %f\n' % (T[i, 0], T[i, 1]))
+
+
 
 def norm_landmarks(landmarks, bbox):
     """

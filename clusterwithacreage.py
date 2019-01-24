@@ -37,7 +37,7 @@ def main():
         landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
         bbox_path = os.path.join(bbox_dir, filename + '.rect')
         bbox = utils.read_bbox(bbox_path)
-        landmarks = utils.read_landmarks(landmark_path)
+        landmarks = utils.read_mat(landmark_path)
         landmarks = utils.norm_landmarks(landmarks, bbox)
         norm_landmarks.append(landmarks)
         bboxes.append(bbox)

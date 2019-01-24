@@ -33,7 +33,7 @@ for i in range(len(a)):
     # bbox_path = a.bboxes[i]
     landmark_path = a.landmarks[i]
     # bbox = utils.read_bbox(bbox_path)
-    landmarks = utils.read_landmarks(landmark_path)
+    landmarks = utils.read_mat(landmark_path)
     landmarks[:, 0] /= a.bbox_sclae[0]
     landmarks[:, 1] /= a.bbox_sclae[1]
     # landmarks = utils.norm_landmarks(landmarks, bbox)

@@ -44,12 +44,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     image = plt.imread('/data/icme/data/picture/AFW_134212_1_0.jpg')
     bbox = utils.read_bbox('/data/icme/bbox/AFW_134212_1_0.jpg.rect')
-    src = utils.read_landmarks('/data/icme/data/landmark/AFW_134212_1_0.jpg.txt')
+    src = utils.read_mat('/data/icme/data/landmark/AFW_134212_1_0.jpg.txt')
     src = utils.norm_landmarks(src, bbox)
     image = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
 
     bbox = utils.read_bbox('/data/icme/bbox/AFW_134212_1_3.jpg.rect')
-    dst = utils.read_landmarks('/data/icme/data/landmark/AFW_134212_1_3.jpg.txt')
+    dst = utils.read_mat('/data/icme/data/landmark/AFW_134212_1_3.jpg.txt')
     dst = utils.norm_landmarks(dst, bbox)
 
     out = pwa(image, src, dst, (128, 128))
