@@ -1,13 +1,11 @@
 # _*_ coding:utf-8 _*_
 
 import os
-import cv2
 import numpy as np
 from torch.utils.data import Dataset
 import torch
-from random import shuffle
 
-root_dir = os.path.join('/home/orion/correctdata/data', 'landmark')
+root_dir = os.path.join('icme', 'data', 'landmark')
 
 class LdmkDataset(Dataset):
     def __init__(self, root_dir):
@@ -22,8 +20,8 @@ class LdmkDataset(Dataset):
         landmark = self.read_landmark(self.landmarks[i])
         landmark = landmark.astype(np.float)
         # print(landmark[105])
-        x = (landmark[0:70]).flatten()
-        y = (landmark[70:106]).flatten()
+        x = (landmark[0:72]).flatten()
+        y = (landmark[72:106]).flatten()
         # print(x.shape, y.shape)
         return torch.from_numpy(x).double(), torch.from_numpy(y).double()
 
