@@ -9,7 +9,7 @@ class Align(object):
     def __init__(self, reference='../cache/mean_landmarks.pkl', scale=(128, 128), margin=(0.15, 0.1)):
         """
         :param reference: 参考landmark的路径or reference np.array
-        :param scale: 输出图片大小，tuple
+        :param scale: 输出图片大小，tuple, (rows, cols)
         :param margin: tuple，(x_margin, y_margin)人脸和边界之间的距离，左右margin为x_margin*W,上下margin为y_margin*H，
                        其中W和H为人脸的宽度和高度
         """
@@ -39,7 +39,7 @@ class Align(object):
                        max_x, max_y]]
         :return: aligned image
         """
-        ones = np.ones(106)
+        ones = np.ones(106, dtype=np.float32)
         x = np.c_[landmarks, ones]
 
         T = pdb.procrustes(x, self.reference)
