@@ -31,7 +31,7 @@ class Align(object):
         self.reference[:, 1] = (k_y * self.reference[:, 1] + b_y) / (2 * margin_y + 1) * scale[1]
         self.scale = scale
 
-    def __call__(self, image, landmarks, bbox):
+    def __call__(self, image, landmarks):
         """
         :param image: (H, W, 3)
         :param landmarks: (N, 2), unnormalized
