@@ -4,6 +4,7 @@ from data.lb_dataset import LBDataset
 from torch.utils.data import DataLoader
 import torch.optim as opt
 import torch
+
 class MLP(nn.Module):
     def __init__(self):
         super(MLP, self).__init__()

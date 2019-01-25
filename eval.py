@@ -1,32 +1,44 @@
-from data.face_dataset import FaceDataset
-from data.pose_dataset import PoseDataset
+import os
+# os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+from data.bbox_dataset import BBoxDataset
 import torch
 from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
 from models.saver import Saver
 from models.resnet50 import ResNet50
 from models.resnet18 import ResNet18
+from models.dense201 import Dense201
 from tensorboardX import SummaryWriter
 import numpy as np
 from utils.metrics import Metrics
 import time
 from data.utils import draw_landmarks
+from utils.alignment import Align
+from data.bbox_dataset import BBoxDataset
+from data.align_dataset import AlignDataset
 
+net = Dense201()
 
-net = ResNet18().cuda()
-
-criterion = WingLoss(10, 0.5)
+criterion = WingLoss(10, 2)
 
 #PATH = './ckpt'
-a = PoseDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/valid", phase='eval', pose=1)
+# a = BBoxDataset('/data/icme/data/picture',
+#                     '/data/icme/data/landmark',
+#                     '/data/icme/bbox',
+#                     '/data/icme/valid')
+a = AlignDataset('/data/icme/data/picture',
+                 '/data/icme/data/landmark',
+                 '/data/icme/data/pred_landmark',
+                 '/data/icme/valid',
+                 Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
-saver = Saver('ckpt', 'model')
+saver = Saver('../ckpt', 'model')
 current = None
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-writer = SummaryWriter('logs/wing_loss_res18/valid')
+writer = SummaryWriter('logs/densealignbydense/valid')
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 while True:
     if current == saver.last_ckpt():
@@ -46,10 +58,10 @@ while True:
         landmarks = None
         gt = None
         pr = None
-        for iteration in range(10):
+        for iteration in range(4):
             images, landmarks = next(batch_iterator)
-            images = images.cuda()
-            landmarks = landmarks.cuda()
+            images = images
+            landmarks = landmarks
             with torch.no_grad():
                 out = net.forward(images)
 
@@ -69,6 +81,7 @@ while True:
         writer.add_scalar("watch/AUC", metrics.auc.value * 100, current_iter)
         writer.add_scalar("watch/loss", metrics.loss.value, current_iter)
         writer.add_image("result", image, current_iter)
+
         metrics.clear()
         current = last
 

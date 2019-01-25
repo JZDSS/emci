@@ -58,7 +58,7 @@ def main():
             landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
             bbox_path = os.path.join(bbox_dir, filename + '.rect')
             bbox = utils.read_bbox(bbox_path)
-            landmarks = utils.read_landmarks(landmark_path)
+            landmarks = utils.read_mat(landmark_path)
             landmarks = utils.norm_landmarks(landmarks, bbox)
             norm_landmarks.append(landmarks)
             bboxes.append(bbox)
@@ -90,6 +90,7 @@ def main():
     temp = (aligned - np.mean(aligned, axis=0))
     covariance = 1.0 / len(aligned) * temp.T.dot(temp)
     U, S, V = np.linalg.svd(covariance)
+    joblib.dump(U, 'cache/u.pkl', compress=3)
     pc = temp.dot(U[:, 0])
 
     plt.hist(pc,bins=11)
