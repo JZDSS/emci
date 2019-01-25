@@ -3,7 +3,6 @@ from skimage.transform import PiecewiseAffineTransform, warp
 from data import utils
 import cv2
 
-
 def pwa(image, src, dst, shape):
     """
     :param image: aligned image or cropped image
@@ -13,6 +12,7 @@ def pwa(image, src, dst, shape):
     :return: piece-wise affined image
     """
     image = cv2.resize(image, shape)
+    temp = dst.copy()
     src[:, 0] *= shape[0]
     src[:, 1] *= shape[1]
     dst[:, 0] *= shape[0]
@@ -32,12 +32,12 @@ def pwa(image, src, dst, shape):
     dst = np.concatenate([dst, add], axis=0)
     tform = PiecewiseAffineTransform()
     tform.estimate(dst, src)
-
+    new_landmark = tform.__call__(temp)
     # out_rows ,out_cols = shape
     out_rows = image.shape[0]
     out_cols = image.shape[1]
     out = warp(image, tform, output_shape=(out_rows, out_cols))
-    return out
+    return out, new_landmark
 
 
 if __name__ == '__main__':
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     image = plt.imread('/data/icme/data/picture/AFW_134212_1_0.jpg')
     bbox = utils.read_bbox('/data/icme/bbox/AFW_134212_1_0.jpg.rect')
     src = utils.read_mat('/data/icme/data/landmark/AFW_134212_1_0.jpg.txt')
+
     src = utils.norm_landmarks(src, bbox)
     image = image[bbox[1] : bbox[3], bbox[0] : bbox[2]]
 
