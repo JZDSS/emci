@@ -113,15 +113,15 @@ def random_gamma_trans(img, gamma_vari):
 def random_color(img):
     img = Image.fromarray(img)
 
-    random_factor = np.random.uniform(0.8, 1.2)
+    random_factor = np.random.uniform(0.5, 1.5)
     color_img = ImageEnhance.Color(img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.8, 1.2)
+    random_factor = np.random.uniform(0.5, 1.5)
     brightness_img = ImageEnhance.Brightness(color_img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.8, 1.2)
+    random_factor = np.random.uniform(0.5, 1.5)
     contrast_img = ImageEnhance.Contrast(brightness_img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.8, 1.2)
+    random_factor = np.random.uniform(0.5, 1.5)
     sharpness_img = ImageEnhance.Sharpness(contrast_img).enhance(random_factor)
     return np.array(sharpness_img)

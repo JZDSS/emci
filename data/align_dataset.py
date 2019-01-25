@@ -1,4 +1,5 @@
 import os
+import cv2
 import numpy as np
 from data.face_dataset import FaceDataset
 from data import utils
@@ -21,13 +22,16 @@ class AlignDataset(FaceDataset):
     def __getitem__(self, item):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
         al_ldmk = utils.read_mat(self.algin_ldmk[item])
-        image, landmarks, t = self.aligner(image, al_ldmk)
+        image, _, t = self.aligner(image, al_ldmk)
         landmarks = landmarks @ t[0:2, :] + t[2, :]
+        landmarks[:, 0] /= self.aligner.scale[1]
+        landmarks[:, 1] /= self.aligner.scale[0]
         if self.phase == 'train':
             image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
             image = utils.random_color(image)
 
+        image = cv2.resize(image, self.shape)
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         return image, np.reshape(landmarks, (-1))
 
