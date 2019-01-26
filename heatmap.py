@@ -20,6 +20,10 @@ filenames = os.listdir(image_dir)
 
 for filename in filenames:
     id = get_id(filename)
+    image_path =os.path.join(image_dir, filename)
+    image = cv.imread(image_path)
+
+
     landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
     landmarks = utils.read_mat(landmark_path)
     x = landmarks[0:33,0]
@@ -38,6 +42,13 @@ for filename in filenames:
         cv.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j+1, 0], landmarks[j+1, 1]), color,thickness=2)#thickness
     pic1 = cv.GaussianBlur(img,(11,11),3)
     # #两个sigma允许输入负数等其他不常用的输入。
+
+    # picstack = np.hstack([image, img, pic1, pic1*image])
+    # cv.imshow('stack',picstack)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()
+
+
     Img_Name = "D:\icmedata\sendaligned\\aligned\heatmap\\faceoutline\\" + id + ".png"
     cv.imwrite(Img_Name,pic1)
 
@@ -112,10 +123,3 @@ for filename in filenames:
     Img_Name = "D:\icmedata\sendaligned\\aligned\heatmap\\mouth\\" + id + ".png"
     cv.imwrite(Img_Name, pic8)
 
-
-
-
-    # picstack = np.hstack([img,pic2])
-    # cv.imshow('stack',picstack)
-    # cv.waitKey(0)
-    # cv.destroyAllWindows()
