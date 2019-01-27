@@ -14,10 +14,12 @@ class AlignDataset(FaceDataset):
                  aligner,
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
-                 shape=(224, 224)):
+                 shape=(224, 224),
+                 flip=True):
         super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
+        self.flip = flip
 
     def __getitem__(self, item):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
@@ -27,7 +29,8 @@ class AlignDataset(FaceDataset):
         landmarks[:, 0] /= self.aligner.scale[1]
         landmarks[:, 1] /= self.aligner.scale[0]
         if self.phase == 'train':
-            image, landmarks = utils.random_flip(image, landmarks, 0.5)
+            if self.flip:
+                image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
             image = utils.random_color(image)
 
