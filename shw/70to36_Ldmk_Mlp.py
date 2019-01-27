@@ -1,10 +1,11 @@
+# _*_ coding:utf-8 _*_
+
 import torch.nn.functional as F
 from torch import nn
 from torch.utils.data import DataLoader
 import torch.optim as opt
 from shw.LdmkDataset import LdmkDataset
 import os
-
 from wing_loss import WingLoss
 
 
@@ -13,10 +14,10 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
 
         # 前71个landmark点，网络要重写
-        self.fc1 = nn.Linear(144, 600)
+        self.fc1 = nn.Linear(152, 600)
         self.fc2 = nn.Linear(600, 300)
         self.fc3 = nn.Linear(300, 150)
-        self.fc4 = nn.Linear(150, 68)
+        self.fc4 = nn.Linear(150, 60)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
@@ -27,17 +28,17 @@ class MLP(nn.Module):
 
 
 mlp = MLP().double()
-# a = LBDataset("/home/zhzhong/Desktop/correctdata", "/home/zhzhong/Desktop/correctdata/train")
 
 a = LdmkDataset(os.path.join("icme","data","landmark"))
 batch_loader = DataLoader(a, batch_size=45, shuffle=True, num_workers=0)
 # batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
 # criterion = nn.L1Loss()
 # criterion = nn.MSELoss()
-criterion = WingLoss(8, 2)
+
+criterion = WingLoss(6, 2)
 optimizer = opt.Adam(mlp.parameters(), lr=2e-3, weight_decay=5e-4)
 
-for epoch in range(500):    # loop over the dataset multiple times
+for epoch in range(1000):    # loop over the dataset multiple times
 
     running_loss = 0.0
     iteration = 0
