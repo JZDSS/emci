@@ -98,11 +98,10 @@ class AlignDataset(FaceDataset):
         heatmapfusion6 = pic6 * image
         heatmapfusion7 = pic7 * image
         heatmapfusion8 = pic8 * image
-        image = np.append(heatmapfusion1,heatmapfusion2,heatmapfusion3,heatmapfusion4,heatmapfusion5,heatmapfusion6,heatmapfusion7,heatmapfusion8)
-
-
-        image = cv2.resize(image, self.shape)
-        return image, np.reshape(landmarks, (-1))
+        heatmapAll = pic1+pic2+pic3+pic4+pic5+pic6+pic7+pic8
+        image = np.c_[heatmapfusion1,heatmapfusion2,heatmapfusion3,heatmapfusion4,heatmapfusion5,heatmapfusion6,heatmapfusion7,heatmapfusion8]
+        imageshape = image.shape
+        return image, np.reshape(landmarks, (-1)), heatmapAll,imageshape
 
 
 if __name__ == '__main__':
