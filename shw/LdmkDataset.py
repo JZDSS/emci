@@ -20,8 +20,8 @@ class LdmkDataset(Dataset):
         landmark = self.read_landmark(self.landmarks[i])
         landmark = landmark.astype(np.float)
         # print(landmark[105])
-        x = (landmark[0:76]).flatten()
-        y = (landmark[76:106]).flatten()
+        x = (landmark[0:65]).flatten()
+        y = (landmark[65:106]).flatten()
         # print(x.shape, y.shape)
         return torch.from_numpy(x).double(), torch.from_numpy(y).double()
 
