@@ -60,7 +60,7 @@ if __name__ == '__main__':
     a = AlignDataset('/data/icme/data/picture',
                  '/data/icme/data/landmark',
                  '/data/icme/data/landmark',
-                 '/data/icme/valid',
+                 '/data/icme/train',
                  Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
 
