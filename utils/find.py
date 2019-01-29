@@ -1,5 +1,5 @@
-from data.pose_dataset import PoseDataset
-from data.pose_aligned_dataset import PoseAlignedDataset
+from data.align_dataset import AlignDataset
+from utils.alignment import Align
 import torch
 from torch.utils.data import DataLoader
 from models.resnet18 import ResNet18
@@ -13,13 +13,17 @@ metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 if __name__ == "__main__":
     current = None
     net = Dense201().cuda()
-    net.load_state_dict(torch.load('../backup/aligned_densenet-166400.pth'))
+    net.load_state_dict(torch.load('../backup/align-jitter.pth'))
     net.eval()
     NME = np.zeros(11)
     AUC = np.zeros(11)
     for pose in range(1, 12):
-        a = PoseAlignedDataset("/data/icme", "/data/icme/valid",
-                        phase='eval', pose=pose)
+        a = AlignDataset('/data/icme/data/picture',
+                     '/data/icme/data/landmark',
+                     '/data/icme/data/pred_landmark',
+                     '/data/icme/valid',
+                     Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.1)),
+                     bins=[pose], phase='eval')
         batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=1))
         images = None
         landmarks = None
@@ -50,14 +54,16 @@ if __name__ == "__main__":
         print('pose:', pose, 'len:', len(a))
         # print('nme', nme, 'auc', auc, nmes[interation], aucs[interation])
         # metrics.loss.update(loss.item())
+    print(NME)
+    print(AUC)
 
     x = np.linspace(1, 11, 11)
+    plt.subplot(1, 2, 1)
     plt.plot(x, NME, )
     plt.title('NME')
     plt.xlim((0, 12))
     plt.grid()
-    plt.show()
-
+    plt.subplot(1, 2, 2)
     plt.plot(x, AUC, )
     plt.title('AUC')
     plt.xlim((0, 12))

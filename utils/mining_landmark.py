@@ -1,11 +1,12 @@
 import sys
-sys.path.append('/home/orion/Desktop/ecmi/emci')
-from data.pose_dataset import PoseDataset
+from data.align_dataset import AlignDataset
+from utils.alignment import Align
 import torch
 from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
 from models.resnet50 import ResNet50
 from models.resnet18 import ResNet18
+from models.dense201 import Dense201
 import numpy as np
 from utils.metrics import Metrics
 import matplotlib.pyplot as plt
@@ -15,15 +16,18 @@ import math
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 
 if __name__ == "__main__":
-    net = ResNet18().cuda()
-    net.load_state_dict(torch.load('../backup/resnet18-9200.pth'))
+    net = Dense201().cuda()
+    net.load_state_dict(torch.load('../backup/align-jitter.pth'))
     net.eval()
     PR_list = []
     GT_list = []
-    for pose in range(11):
-        a = PoseDataset("/data/icme", "/data/icme/valid",
-                        phase='eval', pose=pose)
-        index = int(a.get_index())
+    for pose in range(1, 12):
+        a = AlignDataset('/data/icme/data/picture',
+                         '/data/icme/data/landmark',
+                         '/data/icme/data/pred_landmark',
+                         '/data/icme/valid',
+                         Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.1)),
+                         bins=[pose], phase='eval')
         batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=0))
         images = None
         landmarks = None
@@ -43,7 +47,7 @@ if __name__ == "__main__":
                 GT_list.append(gt)
             except StopIteration:
                 break
-        print('pose:', pose + 1, 'len:', len(a), 'index:', index)
+        print('pose:', pose, 'len:', len(a))
 
     def calc_nme(G, P):
         GMax = np.max(G, axis=1)
