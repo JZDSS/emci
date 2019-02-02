@@ -16,7 +16,7 @@ def procrustes(x, y):
     """
     # 奇异分解
     u, sigma, vt = np.linalg.svd(x)
-    s = np.zeros((106, 3), dtype=np.float32)
+    s = np.zeros_like(x, dtype=np.float32)
     for i in range(sigma.shape[0]):
         s[i, i] = 1/sigma[i]
     # M-P逆
