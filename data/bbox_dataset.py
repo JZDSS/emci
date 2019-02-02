@@ -20,7 +20,10 @@ class BBoxDataset(FaceDataset):
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
         bbox_path = self.bboxes[item]
-        bbox = utils.read_bbox(bbox_path)
+        try:
+            bbox = utils.read_bbox(bbox_path)
+        except:
+            bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
         landmarks = utils.norm_landmarks(landmarks, bbox)
         minx, miny, maxx, maxy = bbox
         image = image[miny:maxy + 1, minx:maxx + 1, :]

@@ -22,23 +22,23 @@ net = Dense201()
 criterion = WingLoss(10, 2)
 
 #PATH = './ckpt'
-# a = BBoxDataset('/data/icme/data/picture',
-#                     '/data/icme/data/landmark',
-#                     '/data/icme/bbox',
-#                     '/data/icme/valid')
-a = AlignDataset('/data/icme/data/picture',
-                 '/data/icme/data/landmark',
-                 '/data/icme/data/pred_landmark',
-                 '/data/icme/valid',
-                 Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
+a = BBoxDataset('/data/icme/data/picture',
+                    '/data/icme/data/landmark',
+                    '/data/icme/bbox',
+                    '/data/icme/valid')
+# a = AlignDataset('/data/icme/data/picture',
+#                  '/data/icme/data/landmark',
+#                  '/data/icme/data/pred_landmark',
+#                  '/data/icme/valid',
+#                  Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
-saver = Saver('../ckpt', 'model')
+saver = Saver('./ckpt', 'model')
 current = None
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-writer = SummaryWriter('logs/densealignbydense/valid')
+writer = SummaryWriter('logs/dense_e/valid')
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 while True:
     if current == saver.last_ckpt():

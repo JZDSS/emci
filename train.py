@@ -24,7 +24,7 @@ from utils.alignment import Align
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-l', '--lr', default=5e-6, type=float)
+parser.add_argument('-l', '--lr', default=2e-5, type=float)
 parser.add_argument('-b', '--batch_size', default=16, type=int)
 parser.add_argument('-c', '--cuda', default=True, type=bool)
 parser.add_argument('-n', '--n_gpu', default=1, type=int)
@@ -51,22 +51,23 @@ def adjust_learning_rate(optimizer, step, gamma, epoch, iteration, epoch_size):
 if __name__ == '__main__':
     metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
 
-    writer = SummaryWriter('logs/densealignbydense/train')
+    writer = SummaryWriter('logs/dense_e/train')
     net = Dense201().cuda()
-    # a = BBoxDataset('/data/icme/data/picture',
-    #                 '/data/icme/data/landmark',
-    #                 '/data/icme/bbox',
-    #                 '/data/icme/train')
-    a = AlignDataset('/data/icme/data/picture',
-                 '/data/icme/data/landmark',
-                 '/data/icme/data/landmark',
-                 '/data/icme/train',
-                 Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
+    a = BBoxDataset('/data/icme/data/picture',
+                    '/data/icme/data/landmark',
+                    '/data/icme/bbox',
+                    '/data/icme/train',
+                    bins=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+    # a = AlignDataset('/data/icme/data/picture',
+    #              '/data/icme/data/landmark',
+    #              '/data/icme/data/landmark',
+    #              '/data/icme/train',
+    #              Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
     batch_iterator = iter(DataLoader(a, batch_size=args.batch_size, shuffle=True, num_workers=4))
 
     criterion = WingLoss(10, 2)
     optimizer = optim.Adam(net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    saver = Saver('../ckpt', 'model', 10)
+    saver = Saver('./ckpt', 'model', 10)
     last = saver.last_ckpt()
     start_iter = 0 if last is None else int(last.split('.')[0].split('-')[-1])
     if start_iter > 0:

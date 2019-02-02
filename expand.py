@@ -18,7 +18,7 @@ def ids(name):
     name = name.rstrip('.jpg')
     b = re.split("(_AFW.+|_HELEN.+|_IBUG.+|_LFPW.+)", name)
     b[1] = b[1][1:]
-    return get_id(b[0]), get_id([1])
+    return get_id(b[0]), get_id(b[1])
 
 
 split = joblib.load('cache/split.pkl')
