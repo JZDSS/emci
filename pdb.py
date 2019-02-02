@@ -27,8 +27,16 @@ def procrustes(x, y):
 
 def main():
     def get_id(name):
-        t = name.split('_')[0:2]
-        return t[0] + t[1]
+        if 'LFPW_image' in name:
+            t = name.split('_')[0:4]
+            t = t[0] + t[1] + t[2] + t[3]
+        elif 'IBUG_image' in name:
+            t = name.split('_')[0:3]
+            t = t[0] + t[1] + t[2]
+        else:
+            t = name.split('_')[0:2]
+            t = t[0] + t[1]
+        return t
 
     # 我偷懒了，所以最好不要写成'/home/yqi/data/icme/'
     root_dir = '/data/icme'
