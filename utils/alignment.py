@@ -6,7 +6,11 @@ import cv2
 
 class Align(object):
 
-    def __init__(self, reference='../cache/mean_landmarks.pkl', scale=(128, 128), margin=(0.15, 0.1)):
+    def __init__(self,
+                 reference='../cache/mean_landmarks.pkl',
+                 scale=(128, 128),
+                 margin=(0.15, 0.1),
+                 idx=None):
         """
         :param reference: 参考landmark的路径or reference np.array
         :param scale: 输出图片大小，tuple, (rows, cols)
@@ -17,6 +21,11 @@ class Align(object):
             self.reference = joblib.load(reference)
         else:
             self.reference = reference
+        if not (idx is None):
+            self.reference = self.reference[idx]
+            self.idx = idx
+        else:
+            self.idx = list(range(106))
         # plt.subplot(1, 2, 1)
         # plt.scatter(self.reference[:, 0], self.reference[:, 1])
         max_y, min_y, max_x, min_x = [max(self.reference[:, 1]), min(self.reference[:, 1]),
@@ -39,7 +48,8 @@ class Align(object):
                        max_x, max_y]]
         :return: aligned image
         """
-        ones = np.ones(106, dtype=np.float32)
+        landmarks = landmarks[self.idx,:]
+        ones = np.ones(len(landmarks), dtype=np.float32)
         x = np.c_[landmarks, ones]
 
         T = pdb.procrustes(x, self.reference)
