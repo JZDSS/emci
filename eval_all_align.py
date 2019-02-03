@@ -31,7 +31,7 @@ net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'dense-model-133900.pth'
+model_name = 'dense-align-model-89000.pth'
 saver.load(net, model_name)
 
 
@@ -52,7 +52,10 @@ for i in range(len(a)):
     pr = pr.cpu().data.numpy()
     gt = gt.data.numpy()
     t = t.data.numpy()
-    pr = a.aligner.inverse(np.reshape(pr, (-1, 2)), t[0])
+    pr = np.reshape(pr, (-1, 2))
+    pr[:, 0] *= a.shape[1]
+    pr[:, 1] *= a.shape[0]
+    pr = a.aligner.inverse(pr, t[0])
     gt = np.reshape(gt, (-1, 2))
     all_pr.append(pr)
     all_gt.append(gt)
