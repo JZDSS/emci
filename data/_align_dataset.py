@@ -38,7 +38,7 @@ class AlignDataset(FaceDataset):
 
         image = cv2.resize(image, self.shape)
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
-        landmarks = landmarks[self.ldmk_ids, :]
+        # landmarks = landmarks[self.ldmk_ids, :]
         return image, np.reshape(landmarks, (-1)), t, self.file_list[item]
 
 
