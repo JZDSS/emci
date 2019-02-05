@@ -59,8 +59,9 @@ class DenseNet(nn.Module):
                 m.bias.data.zero_()
             elif isinstance(m, nn.Linear):
                 m.bias.data.zero_()
-        for k, v in self.features.items():
-            self.__setattr__(k, v)
+        # for k, v in self.features.items():
+        #     self.__setattr__(k, v)
+        self.features = nn.ModuleDict(self.features)
 
     def forward(self, x, heatmap):
         features = x

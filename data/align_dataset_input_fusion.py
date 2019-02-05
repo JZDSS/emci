@@ -1,10 +1,10 @@
 import os
 import cv2
 import numpy as np
-from data.face_dataset import FaceDataset
+from data.align_dataset import AlignDataset
 from data import utils
 
-class AlignDataset(FaceDataset):
+class AlignFusionDataset(AlignDataset):
 
     def __init__(self,
                  img_dir,
@@ -12,111 +12,141 @@ class AlignDataset(FaceDataset):
                  al_ldmk_dir,
                  bin_dir,
                  aligner,
-                 bins=[1,2,3,4,5,6,7,8,9,10,11],
+                 bins=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
                  phase='train',
-                 shape=(224, 224)):
-        super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
+                 shape=(224, 224),
+                 flip=True,
+                 ldmk_ids=[i for i in range(106)], kernel_size=15, sigma=5):
+        super(AlignFusionDataset, self).__init__(img_dir, gt_ldmk_dir, al_ldmk_dir, bin_dir, aligner,
+                                                 bins, phase, shape, flip, ldmk_ids)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
+        self.kernel_size = kernel_size
+        self.sigma = sigma
 
     def __getitem__(self, item):
-        image, landmarks = super(AlignDataset, self).__getitem__(item)
-        al_ldmk = utils.read_mat(self.algin_ldmk[item])
-        image, _, t = self.aligner(image, al_ldmk)
-        landmarks = landmarks @ t[0:2, :] + t[2, :]
-        landmarks[:, 0] /= self.aligner.scale[1]
-        landmarks[:, 1] /= self.aligner.scale[0]
-        if self.phase == 'train':
-            image, landmarks = utils.random_flip(image, landmarks, 0.5)
-            image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
-            image = utils.random_color(image)
-        color = (255, 255, 255)
+        image, landmarks = super(AlignFusionDataset, self).__getitem__(item)
+        image = np.transpose(image, [1, 2, 0])
+        landmarks = np.reshape(landmarks, (-1, 2))
+
+        landmarks[:, 0] *= self.shape[1]
+        landmarks[:, 1] *= self.shape[0]
+        # heatmap = np.zeros((self.shape[0], self.shape[1], 3), np.uint8)
+
+        kernel_size = self.kernel_size
+        sigma = self.sigma
+        heatmaps = []
         # 脸部外轮廓
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(32):
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic1 = cv2.GaussianBlur(img, (11, 11), 3)
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(32))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
         # 鼻梁
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(3):
-            j = j + 51
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic2 = cv2.GaussianBlur(img, (11, 11), 3)
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [51, 52, 53, 60]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
         # 鼻子下轮廓
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(10):
-            j = j + 55
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic3 = cv2.GaussianBlur(img, (11, 11), 3)
-        # 左眉
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(8):
-            j = j + 33
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic4 = cv2.GaussianBlur(img, (11, 11), 3)
-        # 右眉
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(8):
-            j = j + 42
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic5 = cv2.GaussianBlur(img, (11, 11), 3)
-        # 左眼
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(7):
-            j = j + 66
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic6 = cv2.GaussianBlur(img, (11, 11), 3)
-        # 右眼
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(7):
-            j = j + 75
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic7 = cv2.GaussianBlur(img, (11, 11), 3)
-        # 嘴唇
-        img = np.zeros((128, 128, 3), np.uint8)
-        for j in range(19):
-            j = j + 84
-            cv2.line(img, (landmarks[j, 0], landmarks[j, 1]), (landmarks[j + 1, 0], landmarks[j + 1, 1]), color,
-                    thickness=2)  # thickness
-        pic8 = cv2.GaussianBlur(img, (11, 11), 3)
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(55, 66))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
 
-        image = cv2.resize(image, self.shape)
-        image = np.transpose(image, (2, 0, 1)).astype(np.float32)
+        # 左眉上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(33, 38))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
 
-        heatmapfusion1 = pic1 * image
-        heatmapfusion2 = pic2 * image
-        heatmapfusion3 = pic3 * image
-        heatmapfusion4 = pic4 * image
-        heatmapfusion5 = pic5 * image
-        heatmapfusion6 = pic6 * image
-        heatmapfusion7 = pic7 * image
-        heatmapfusion8 = pic8 * image
-        heatmapAll = pic1+pic2+pic3+pic4+pic5+pic6+pic7+pic8
-        image = np.c_[heatmapfusion1,heatmapfusion2,heatmapfusion3,heatmapfusion4,heatmapfusion5,heatmapfusion6,heatmapfusion7,heatmapfusion8]
-        imageshape = image.shape
-        return image, np.reshape(landmarks, (-1)), heatmapAll,imageshape
+        # 左眉下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [33, 41, 40, 39, 38, 37]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 右眉上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(42, 47))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 右眉下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [46, 47, 48, 49, 50, 42]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 左眼上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(66, 71))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 左眼下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [66, 73, 72, 71, 70]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 右眼上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = list(range(75, 80))
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 右眼下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [75, 82, 81, 80, 79]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 上嘴唇上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [84, 85, 86, 87, 88, 89, 90]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 上嘴唇下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [90, 100, 99, 98, 97, 96, 84]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 下嘴唇上
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [84, 103, 102, 101, 90]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+
+        # 下嘴唇下
+        img = np.zeros((self.shape[0], self.shape[1]), np.uint8)
+        idx = [90, 91, 92, 93, 94, 95, 84]
+        draw_curve(img, landmarks, idx)
+        heatmaps.append(cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma))
+        inputs = []
+        for i in range(len(heatmaps)):
+            heatmaps[i] = heatmaps[i].astype(np.float32) / np.max(heatmaps[i])
+            inputs.append(image * np.expand_dims(heatmaps[i], -1))
+
+        inputs.append(image)
+        inputs = np.concatenate(inputs, axis=-1)
+        inputs = np.transpose(inputs, [2, 0, 1])
+        heatmaps = np.stack(heatmaps, axis=2)
+        heatmaps = np.transpose(heatmaps, [2, 0, 1])
+        landmarks[:, 0] /= self.shape[1]
+        landmarks[:, 1] /= self.shape[0]
+        return inputs, np.reshape(landmarks, (-1)), heatmaps
 
 
-if __name__ == '__main__':
-    from utils.alignment import Align
-    from torch.utils.data import DataLoader
+# def draw_circle(img, landmarks, idx):
+#     # idx = list(range(33, 41))
+#     idx.append(idx[0])
+#     draw_curve(img, landmarks, idx)
 
-    a = AlignDataset('/data/icme/data/picture',
-                     '/data/icme/data/landmark',
-                     '/data/icme/data/landmark',
-                     '/data/icme/valid',
-                     Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
-    batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=0))
-    while True:
-        images, landmarks = next(batch_iterator)
-        print(images.shape)
-
-
-
+def draw_curve(img, landmarks, idx):
+    for j in range(len(idx) - 1):
+        cv2.line(img, (landmarks[idx[j], 0], landmarks[idx[j], 1]),
+                 (landmarks[idx[j + 1], 0], landmarks[idx[j + 1], 1]), (255, 255, 255),
+                     thickness=4)

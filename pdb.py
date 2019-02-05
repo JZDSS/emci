@@ -4,7 +4,8 @@ from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from data import utils
 np.random.seed(0)
-os.system('mkdir cache')
+if not os.path.exists('cache'):
+    os.system('mkdir cache')
 
 
 def procrustes(x, y):
