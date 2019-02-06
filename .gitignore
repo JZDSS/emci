@@ -6,4 +6,4 @@ logs/
 ckpt/
 *events*
 *.pth
-
+test.py
