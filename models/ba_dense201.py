@@ -11,7 +11,10 @@ class Dense201(DenseNet):
                          num_classes=num_classes, **kwargs)
         if pretrained:
             pretrained_dict = dict(model_zoo.load_url(densenet.model_urls['densenet201']))
-            print(pretrained_dict.keys())
+            tmp = pretrained_dict['features.conv0.weight']
+            tmp = [tmp] * 16
+            tmp = np.concatenate(tmp, axis=1)
+            pretrained_dict['features.conv0.weight'] = torch.tensor(tmp)
             del pretrained_dict['classifier.weight']
             del pretrained_dict['classifier.bias']
             model_dict = self.state_dict()
@@ -29,8 +32,8 @@ class Dense201(DenseNet):
         self.sigmoid = nn.Sigmoid()
 
 
-    def forward(self, x):
-        out = super(Dense201, self).forward(x)
+    def forward(self, x, heatmap):
+        out = super(Dense201, self).forward(x, heatmap)
         out = self.sigmoid(out)
         return out
 
@@ -38,11 +41,11 @@ if __name__ == '__main__':
     import numpy as np
     import torch
     # heatmap =np.zeros((128, 128, 3), np.uint8)
-    heatmap = torch.FloatTensor(np.zeros((1, 13, 128, 128), np.uint8))
+    heatmap = torch.FloatTensor(np.zeros((1, 15, 128, 128), np.uint8))
     # print(heatmap)
     # print(heatmap.shape)
-    featuremap = torch.FloatTensor(np.random.random((1, 3, 256, 256)))
+    featuremap = torch.FloatTensor(np.random.random((1, 48, 256, 256)))
     #假设featuremap是64通道的32*32
     net = Dense201(num_classes=212)
 
-    out = net(featuremap)
+    out = net(featuremap, heatmap)

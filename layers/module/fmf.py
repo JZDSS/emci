@@ -8,7 +8,7 @@ from layers.module import Ushape
 class FMF(nn.Module):
     def __init__(self, in_channels, out_channels, depth=5):
         super(FMF, self).__init__()
-        self.u = Ushape.UNet(out_channels, in_channels + 13, depth=depth, merge_mode='concat')
+        self.u = Ushape.UNet(out_channels, in_channels + 15, depth=depth, merge_mode='concat')
         self.sig = nn.Sigmoid()
 
         self.conv = nn.Conv2d(out_channels*2, out_channels, kernel_size=1, stride=1)

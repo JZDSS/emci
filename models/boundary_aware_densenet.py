@@ -25,7 +25,7 @@ class DenseNet(nn.Module):
         super(DenseNet, self).__init__()
         # First convolution
         self.features = OrderedDict([
-            ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
+            ('conv0', nn.Conv2d(48, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
             ('norm0', nn.BatchNorm2d(num_init_features)),
             ('relu0', nn.ReLU(inplace=True)),
             ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
@@ -66,7 +66,7 @@ class DenseNet(nn.Module):
     def forward(self, x, heatmap):
         features = x
         for k, v in self.features.items():
-            print(k)
+            # print(k)
             if not 'fmf' in k:
                 features = v(features)
             else:
