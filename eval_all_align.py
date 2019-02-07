@@ -31,7 +31,7 @@ net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'dense-align-model-89000.pth'
+model_name = 'align-jitter227-model-120000.pth'
 saver.load(net, model_name)
 
 

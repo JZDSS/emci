@@ -3,7 +3,8 @@ from torchvision.models import densenet
 from models.boundary_aware_densenet import DenseNet
 import torch.utils.model_zoo as model_zoo
 import re
-
+import numpy as np
+import torch
 
 class Dense201(DenseNet):
     def __init__(self, pretrained=True, num_classes=212, **kwargs):
