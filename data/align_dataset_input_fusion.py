@@ -85,7 +85,7 @@ class AlignFusionDataset(FaceDataset):
             heatmaps[i] = heatmaps[i].astype(np.float32) / np.max(heatmaps[i])
             inputs.append(image * np.expand_dims(heatmaps[i], -1))
 
-        # inputs.append(image)
+        inputs.append(image)
         # cv2.imshow(",", image)
         # cv2.waitKey(1)
         # for i in inputs:
