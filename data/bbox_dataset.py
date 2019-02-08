@@ -13,9 +13,11 @@ class BBoxDataset(FaceDataset):
                  bin_dir,
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
-                 shape=(224, 224)):
+                 shape=(224, 224),
+                 max_jitter=5):
         super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape)
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
+        self.max_jitter = max_jitter
 
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
@@ -24,8 +26,17 @@ class BBoxDataset(FaceDataset):
             bbox = utils.read_bbox(bbox_path)
         except:
             bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
-        landmarks = utils.norm_landmarks(landmarks, bbox)
         minx, miny, maxx, maxy = bbox
+        left = min(minx, self.max_jitter)
+        right = min(image.shape[1] - maxx, self.max_jitter)
+        up = min(miny, self.max_jitter)
+        down = min(image.shape[0] - maxy, self.max_jitter)
+        dh = np.random.randint(-up, down+1, 1)
+        dv = np.random.randint(-left, right+1, 1)
+        bbox[0::2] += dv
+        bbox[1::2] += dh
+        landmarks = utils.norm_landmarks(landmarks, bbox)
+
         image = image[miny:maxy + 1, minx:maxx + 1, :]
         image = cv2.resize(image, self.shape)
         if self.phase == 'train':
