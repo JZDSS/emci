@@ -16,6 +16,7 @@ class AlignFusionDataset(FaceDataset):
                  phase='train',
                  shape=(224, 224),
                  flip=True,
+                 max_jitter=4,
                  kernel_size=15, sigma=5):
         super(AlignFusionDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
@@ -38,24 +39,26 @@ class AlignFusionDataset(FaceDataset):
                      [84, 103, 102, 101, 90],
                      [90, 91, 92, 93, 94, 95, 84]]
         self.flip = flip
+        self.max_jitter = max_jitter
 
     def __getitem__(self, item):
         image, gt_landmarks = super(AlignFusionDataset, self).__getitem__(item)
         pr_landmarks = utils.read_mat(self.algin_ldmk[item])
-        image, pr_landmarks, t = self.aligner(image, pr_landmarks)
+        image, pr_landmarks, t = self.aligner(image, pr_landmarks,
+                                              noise=np.random.uniform(-self.max_jitter, self.max_jitter, 2))
         gt_landmarks = gt_landmarks @ t[0:2, :] + t[2, :]
 
-        start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
-        start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
-        gt_landmarks[:, 0] -= start_x
-        gt_landmarks[:, 1] -= start_y
-        pr_landmarks[:, 0] -= start_x
-        pr_landmarks[:, 1] -= start_y
+        # start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
+        # start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
+        # gt_landmarks[:, 0] -= start_x
+        # gt_landmarks[:, 1] -= start_y
+        # pr_landmarks[:, 0] -= start_x
+        # pr_landmarks[:, 1] -= start_y
 
         gt_landmarks[:, 0] /= self.shape[1]
         gt_landmarks[:, 1] /= self.shape[0]
 
-        image = image[start_y:start_y + self.shape[0], start_x:start_x + self.shape[1]]
+        # image = image[start_y:start_y + self.shape[0], start_x:start_x + self.shape[1]]
         if self.phase == 'train':
             if self.flip:
                 a = np.random.uniform(0, 1, 1)
@@ -81,11 +84,11 @@ class AlignFusionDataset(FaceDataset):
             inputs.append(image * np.expand_dims(heatmaps[i], -1))
 
         inputs.append(image)
-        # cv2.imshow(",", image)
-        # cv2.waitKey(1)
-        # for i in inputs:
-        #     cv2.imshow("", i.astype(np.uint8))
-        #     cv2.waitKey(0)
+        cv2.imshow(",", image)
+        cv2.waitKey(1)
+        for i in inputs:
+            cv2.imshow("", i.astype(np.uint8))
+            cv2.waitKey(0)
         inputs = np.concatenate(inputs, axis=-1)
         inputs = np.transpose(inputs, [2, 0, 1])
         heatmaps = np.stack(heatmaps, axis=2)

@@ -40,7 +40,7 @@ class Align(object):
         self.reference[:, 1] = (k_y * self.reference[:, 1] + b_y) / (2 * margin_y + 1) * scale[1]
         self.scale = scale
 
-    def __call__(self, image, landmarks):
+    def __call__(self, image, landmarks, noise=(0, 0)):
         """
         :param image: (H, W, 3)
         :param landmarks: (N, 2), unnormalized
@@ -51,8 +51,10 @@ class Align(object):
         landmarks = landmarks[self.idx,:]
         ones = np.ones(len(landmarks), dtype=np.float32)
         x = np.c_[landmarks, ones]
-
-        T = pdb.procrustes(x, self.reference)
+        reference = self.reference
+        reference[: 0] += noise[0]
+        reference[:, 1] += noise[1]
+        T = pdb.procrustes(x, reference)
         landmarks = x @ T
 
         image = cv2.warpAffine(image, np.transpose(T), self.scale)

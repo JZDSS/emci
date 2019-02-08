@@ -4,8 +4,7 @@ from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 from data import utils
 np.random.seed(0)
-if not os.path.exists('cache'):
-    os.system('mkdir cache')
+
 
 
 def procrustes(x, y):
@@ -27,6 +26,8 @@ def procrustes(x, y):
 
 
 def main():
+    if not os.path.exists('cache'):
+        os.system('mkdir cache')
     def get_id(name):
         if 'LFPW_image' in name:
             t = name.split('_')[0:4]

@@ -16,25 +16,28 @@ class AlignDataset(FaceDataset):
                  phase='train',
                  shape=(224, 224),
                  flip=True,
-                 ldmk_ids=[i for i in range(106)]):
+                 ldmk_ids=[i for i in range(106)],
+                 max_jitter=3):
         super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
         self.flip = flip
         self.ldmk_ids = ldmk_ids
+        self.max_jitter = max_jitter
+
 
     def __getitem__(self, item):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
         al_ldmk = utils.read_mat(self.algin_ldmk[item])
-        image, _, t = self.aligner(image, al_ldmk)
+        image, _, t = self.aligner(image, al_ldmk, noise=np.random.uniform(-self.max_jitter, self.max_jitter, 2))
         landmarks = landmarks @ t[0:2, :] + t[2, :]
-        start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
-        start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
-        landmarks[:, 0] -= start_x
-        landmarks[:, 1] -= start_y
+        # start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
+        # start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
+        # landmarks[:, 0] -= start_x
+        # landmarks[:, 1] -= start_y
         landmarks[:, 0] /= self.shape[1]
         landmarks[:, 1] /= self.shape[0]
-        image = image[start_y:start_y + self.shape[0], start_x :start_x + self.shape[1]]
+        # image = image[start_y:start_y + self.shape[0], start_x :start_x + self.shape[1]]
         if self.phase == 'train':
             if self.flip:
                 image, landmarks = utils.random_flip(image, landmarks, 0.5)
