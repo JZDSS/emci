@@ -27,16 +27,16 @@ class BBoxDataset(FaceDataset):
         except:
             bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
         minx, miny, maxx, maxy = bbox
-        left = min(minx, self.max_jitter)
-        right = min(image.shape[1] - maxx, self.max_jitter)
-        up = min(miny, self.max_jitter)
-        down = min(image.shape[0] - maxy, self.max_jitter)
-        dh = np.random.randint(-up, down+1, 1)
-        dv = np.random.randint(-left, right+1, 1)
-        bbox[0::2] += dv
-        bbox[1::2] += dh
+        if self.phase == 'train':
+            left = min(minx, self.max_jitter)
+            right = min(image.shape[1] - maxx, self.max_jitter)
+            up = min(miny, self.max_jitter)
+            down = min(image.shape[0] - maxy, self.max_jitter)
+            dh = np.random.randint(-up, down+1, 1)
+            dv = np.random.randint(-left, right+1, 1)
+            bbox[0::2] += dv
+            bbox[1::2] += dh
         landmarks = utils.norm_landmarks(landmarks, bbox)
-
         image = image[miny:maxy + 1, minx:maxx + 1, :]
         image = cv2.resize(image, self.shape)
         if self.phase == 'train':
