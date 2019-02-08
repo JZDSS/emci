@@ -52,9 +52,11 @@ class Align(object):
         ones = np.ones(len(landmarks), dtype=np.float32)
         x = np.c_[landmarks, ones]
         reference = self.reference
-        reference[: 0] += noise[0]
-        reference[:, 1] += noise[1]
+        # reference[: 0] += noise[0]
+        # reference[:, 1] += noise[1]
         T = pdb.procrustes(x, reference)
+        T[2, 0] += noise[0]
+        T[2, 1] += noise[1]
         landmarks = x @ T
 
         image = cv2.warpAffine(image, np.transpose(T), self.scale)
