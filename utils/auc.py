@@ -22,18 +22,14 @@ class AUC(object):
         n = nme.size
 
         count = np.zeros(int((self.high - self.low) / self.step) + 1)
+        bound = np.linspace(self.low, self.high, len(count))
         for i in range(n):
             v = nme[i]
-            bound = self.low + self.step
-            j = 1
-            while bound < self.high:
-                if v < bound:
+            for j in range(len(bound)):
+                if v <= bound[j]:
                     count[j] += 1
                     break
-                j += 1
-                bound += self.step
-            if bound >= self.high:
-                count[j] += 1
+
         q = np.cumsum(count)
         area = q / n
 
@@ -52,3 +48,7 @@ class AUC(object):
 
     def clear(self):
         self.value = None
+
+if __name__ == '__main__':
+    a = AUC()
+    a.update(0.01*np.ones(100))
