@@ -23,14 +23,16 @@ criterion = WingLoss(10, 2)
 
 #PATH = './ckpt'
 a = BBoxDataset('/data/icme/data/picture',
-                    '/data/icme/data/landmark',
-                    '/data/icme/bbox',
-                    '/data/icme/valid')
+                '/data/icme/data/landmark',
+                '/data/icme/bbox',
+                '/data/icme/valid',
+                phase='eval')
 # a = AlignDataset('/data/icme/data/picture',
 #                  '/data/icme/data/landmark',
 #                  '/data/icme/data/pred_landmark',
 #                  '/data/icme/valid',
-#                  Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)))
+#                  Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)),
+#                  phase='eval')
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
 saver = Saver('./ckpt', 'model')

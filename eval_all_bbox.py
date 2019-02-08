@@ -15,9 +15,10 @@ net = dense201.Dense201().cuda()
 
 #PATH = './ckpt'
 a = BBoxDataset('/data/icme/data/picture',
-                    '/data/icme/data/landmark',
-                    '/data/icme/bbox',
-                    '/data/icme/valid')
+                '/data/icme/data/landmark',
+                '/data/icme/bbox',
+                '/data/icme/valid',
+                phase='eval')
 #Saver.dir=PATH
 saver = Saver('backup', 'model')
 current = None
