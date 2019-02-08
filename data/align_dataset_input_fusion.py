@@ -38,10 +38,12 @@ class AlignFusionDataset(FaceDataset):
                      [90, 100, 99, 98, 97, 96, 84],
                      [84, 103, 102, 101, 90],
                      [90, 91, 92, 93, 94, 95, 84]]
-        self.flip = flip
+
         if self.phase == 'train':
+            self.flip = flip
             self.max_jitter = max_jitter
         else:
+            self.flip = False
             self.max_jitter = 0
     def __getitem__(self, item):
         image, gt_landmarks = super(AlignFusionDataset, self).__getitem__(item)

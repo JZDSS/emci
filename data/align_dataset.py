@@ -21,10 +21,13 @@ class AlignDataset(FaceDataset):
         super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
-        self.flip = flip
         self.ldmk_ids = ldmk_ids
-        self.max_jitter = max_jitter
-
+        if phase == 'train':
+            self.flip = flip
+            self.max_jitter = max_jitter
+        else:
+            self.flip = False
+            self.max_jitter = 0
 
     def __getitem__(self, item):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
