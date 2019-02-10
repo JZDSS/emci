@@ -1,8 +1,9 @@
 class exponential_decay(object):
 
     def __init__(self, learning_rate, decay_steps, decay_rate, global_step=1, staircase=False, name=None):
-        self.learning_rate = learning_rate
+        self.learning_rate_ = learning_rate
         self.global_step = global_step
+
         if staircase:
             self.decay_steps = decay_steps
             self.decay_rate = decay_rate
@@ -10,12 +11,17 @@ class exponential_decay(object):
             self.decay_steps = 1
             self.decay_rate = decay_rate ** (1 / decay_steps)
 
+        self.learning_rate = self.learning_rate_ * self.decay_rate** (self.global_step // self.decay_steps)
+
     def get(self):
         if self.global_step % self.decay_steps == 0:
             self.learning_rate *= self.decay_rate
         self.global_step += 1
         return self.learning_rate
 
+    def set_global_step(self, global_step):
+        self.global_step = global_step
+        self.learning_rate = self.learning_rate_ * self.decay_rate ** (self.global_step // self.decay_steps)
 
 class piecewise_constant(object):
 
@@ -35,6 +41,12 @@ class piecewise_constant(object):
         self.global_step += 1
         return self.learning_rate
 
+    def set_global_step(self, global_step):
+        self.global_step = global_step
+        self.learning_rate = self.values[0]
+        for i, b in enumerate(self.boundaries):
+            if self.global_step >= b:
+                self.learning_rate = self.values[i + 1]
 
 class polynomial_decay(object):
     def __init__(self, learning_rate, decay_steps,
@@ -49,22 +61,53 @@ class polynomial_decay(object):
 
     def get(self):
         global_step = min(self.global_step, self.decay_steps)
-        decayed_learning_rate = (self.learning_rate - self.end_learning_rate) *
-        (1 - global_step / self.decay_steps) ** (self.power) + self.end_learning_rate
+        decayed_learning_rate = (self.learning_rate - self.end_learning_rate) * \
+            (1 - global_step / self.decay_steps) ** (self.power) + self.end_learning_rate
         self.global_step += 1
         if self.cycle:
             self.global_step = self.global_step % self.decay_steps + 1
         return decayed_learning_rate
 
-# class lr(object):
-#     def __init__(self, config):
-#         """
-#         :param config: A dictionary.
-#         config = {0: polynomial_decay(1e-8, 2000, 0.01),
-#                   2001: exponential_decay(0.01, 300, 0.99)}
-#         """
-#         self.config = config
-#
-#
-#     def get(self):
-#         pass
+    def set_global_step(self, global_step):
+        self.global_step = global_step
+
+class mix(object):
+
+    def __init__(self, config, global_step=1):
+        """
+        :param config: A dictionary.
+        for example:
+        config = ={0: polynomial_decay(1e-8, 5000, 0.01),
+                   5001: exponential_decay(0.01, 300, 0.9)}
+        means learning rate increase linearly in first 5000 steps and decay exponentially later.
+        """
+        self.boundaries, self.values = zip(*config.items())
+        self.global_step = global_step
+
+        self.curr = self.values[0]
+        self.curr.set_global_step(global_step)
+        for i, b in enumerate(self.boundaries):
+            if self.global_step >= b:
+                global_step -= b
+                self.curr = self.values[i]
+                self.curr.set_global_step(global_step)
+        self.keys = config.keys()
+
+    def get(self):
+        self.global_step += 1
+        if self.global_step in self.keys:
+            self.curr = self.values[self.boundaries.index(self.global_step)]
+        return self.curr.get()
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    config = {0: polynomial_decay(1e-8, 5000, 0.01),
+              5001: exponential_decay(0.01, 300, 0.9)}
+    l = mix(config, global_step=3500)
+    lrs = []
+    for i in range(100000):
+        lrs.append(l.get())
+    x = list(range(100000))
+    plt.plot(x, lrs)
+    plt.show()
