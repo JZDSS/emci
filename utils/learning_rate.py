@@ -1,3 +1,6 @@
+import math
+
+
 class exponential_decay(object):
 
     def __init__(self, learning_rate, decay_steps, decay_rate, global_step=1, staircase=False, name=None):
@@ -60,12 +63,15 @@ class polynomial_decay(object):
         self.cycle = cycle
 
     def get(self):
-        global_step = min(self.global_step, self.decay_steps)
-        decayed_learning_rate = (self.learning_rate - self.end_learning_rate) * \
-            (1 - global_step / self.decay_steps) ** (self.power) + self.end_learning_rate
-        self.global_step += 1
         if self.cycle:
-            self.global_step = self.global_step % self.decay_steps + 1
+            decay_steps = self.decay_steps * math.ceil(self.global_step / self.decay_steps)
+            global_step = self.global_step
+        else:
+            decay_steps = self.decay_steps
+            global_step = min(self.global_step, self.decay_steps)
+        decayed_learning_rate = (self.learning_rate - self.end_learning_rate) * \
+            (1 - global_step / decay_steps) ** (self.power) + self.end_learning_rate
+        self.global_step += 1
         return decayed_learning_rate
 
     def set_global_step(self, global_step):
@@ -105,9 +111,11 @@ if __name__ == '__main__':
     config = {0: polynomial_decay(1e-8, 5000, 0.01),
               5001: exponential_decay(0.01, 300, 0.9)}
     l = mix(config, global_step=3500)
+    # l = polynomial_decay(1e-2, 5000, 1e-6, power=0.5, cycle=True)
     lrs = []
-    for i in range(100000):
+    for i in range(10000):
         lrs.append(l.get())
-    x = list(range(100000))
+    x = list(range(10000))
     plt.plot(x, lrs)
     plt.show()
+
