@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 class Dense201(DenseNet):
-    def __init__(self, pretrained=True, num_classes=212, **kwargs):
+    def __init__(self, pretrained=True, num_classes=212, fmf_pretrain=None, **kwargs):
         super(Dense201, self).__init__(num_init_features=64, growth_rate=32, block_config=(6, 12, 48, 32),
                          num_classes=num_classes, **kwargs)
         if pretrained:
@@ -29,6 +29,15 @@ class Dense201(DenseNet):
                     del pretrained_dict[key]
 
             model_dict.update(pretrained_dict)
+            if not fmf_pretrain is None:
+                used = {}
+                state_dict = torch.load(fmf_pretrain)
+                for k, v in state_dict.items():
+                    if k == 'features.conv0.weight':
+                        used[k] = v
+                    elif 'fmf' in k:
+                        used[k] = v
+                model_dict.update(used)
             self.load_state_dict(model_dict)
         self.sigmoid = nn.Sigmoid()
 
