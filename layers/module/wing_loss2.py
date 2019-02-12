@@ -2,6 +2,7 @@ from layers.module import wing_loss
 from torch import nn
 class WingLoss2(nn.Module):
     def __init__(self, w1, epsilon1, w2, epsilon2):
+        super(WingLoss2, self).__init__()
         self.wing1 = wing_loss.WingLoss(w1, epsilon1)
         self.wing2 = wing_loss.WingLoss(w2, epsilon2)
 
