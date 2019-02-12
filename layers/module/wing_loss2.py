@@ -9,6 +9,6 @@ class WingLoss2(nn.Module):
         self.wing2 = wing_loss.WingLoss(w2, epsilon2)
 
     def forward(self, predictions, targets):
-        loss1 = self.wing1(predictions[:33, :], targets[:33, :])
-        loss2 = self.wing2(predictions[33:, :], targets[33:, :])
+        loss1 = self.wing1(predictions[:, :66], targets[:, :66])
+        loss2 = self.wing2(predictions[:, 66:], targets[:, 66:])
         return loss1 + loss2
