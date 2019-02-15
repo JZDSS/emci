@@ -39,8 +39,14 @@ class Align(object):
         self.reference[:, 0] = (k_x * self.reference[:, 0] + b_x) / (2 * margin_x + 1) * scale[0]
         self.reference[:, 1] = (k_y * self.reference[:, 1] + b_y) / (2 * margin_y + 1) * scale[1]
         self.scale = scale
+        self.n = np.array([[1, 0, 0],
+                      [0, 1, 0],
+                      [-self.scale[1] / 2, -self.scale[0] / 2, 1]])
+        self.p = np.array([[1, 0, 0],
+                      [0, 1, 0],
+                      [self.scale[1] / 2, self.scale[0] / 2, 1]])
 
-    def __call__(self, image, landmarks, noise=(0, 0)):
+    def __call__(self, image, landmarks, noise=(0, 0), angle=0):
         """
         :param image: (H, W, 3)
         :param landmarks: (N, 2), unnormalized
@@ -55,8 +61,15 @@ class Align(object):
         # reference[: 0] += noise[0]
         # reference[:, 1] += noise[1]
         T = pdb.procrustes(x, reference)
+        rotate = np.array([[np.cos(angle), np.sin(angle), 0],
+                           [-np.sin(angle), np.cos(angle), 0],
+                           [0, 0, 1]])
+
+        T = np.c_[T, [0,0,1]]
+        T = (T @ self.n @ rotate @ self.p)[:, 0:2]
         T[2, 0] += noise[0]
         T[2, 1] += noise[1]
+        # T = n[:, 0:2]
         landmarks = x @ T
 
         image = cv2.warpAffine(image, np.transpose(T), self.scale)
@@ -104,7 +117,7 @@ if __name__ == '__main__':
         landmarks = ul.read_mat(landmark_path)
         image = cv2.imread(img_path)
 
-        image, landmark = a(image, landmarks, bbox)
+        image, landmark, t = a(image, landmarks)
 
         plt.imshow(image)
         plt.scatter(landmark[:, 0], landmark[:, 1])
