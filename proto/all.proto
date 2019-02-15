@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+message ExponentialDecay {
+    float start_lr = 1;
+    int32 decay_steps = 2;
+    float decay_rate = 3;
+    bool staircase = 4;
+}
+
+message PiecewiseConstant {
+    repeated int32 boundary = 1;
+    repeated float value = 2;
+}
+
+message PolynomialDecay {
+    float learning_rate = 1;
+    int32 decay_steps = 2;
+    float end_learning_rate = 3;
+    float power = 4;
+    bool cycle = 5;
+}
+
+message Pair {
+    int32 boundary = 1;
+    LearningRate lr = 2;
+}
+
+message Mix {
+    repeated Pair item = 1;
+}
+
+message LearningRate {
+    enum LearningRateType {
+        NONE = 0;
+        EXPONENTIAL = 4;
+        PIECEWISE = 1;
+        POLYNOMIAL = 2;
+        MIX = 3;
+    }
+    LearningRateType type = 1;
+    ExponentialDecay exponential_decay = 2;
+    PiecewiseConstant piecewise_constant = 3;
+    PolynomialDecay polynomial_decay = 4;
+    Mix mix = 5;
+}
+
+message WingLoss {
+    float w = 1;
+    float epsilon = 2;
+}
+
+message WingLoss2 {
+    float w1 = 1;
+    float epsilon1 = 2;
+    float w2 = 3;
+    float epsilon2 = 4;
+}
+
+message Loss {
+    enum LossType {
+        NONE = 0;
+        WING = 1;
+        WING2 = 2;
+    }
+    LossType type = 1;
+    WingLoss wing_loss = 2;
+    WingLoss2 wing_loss2 = 3;
+}
+
+enum Device {
+    CPU = 0;
+    GPU = 1;
+}
+
+message Config {
+    string root = 1;
+    LearningRate lr = 2;
+    Loss loss = 3;
+    Device device = 4;
+}

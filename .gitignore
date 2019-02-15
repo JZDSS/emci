@@ -7,3 +7,4 @@ ckpt/
 *events*
 *.pth
 test.py
+proto/*.py

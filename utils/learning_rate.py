@@ -97,11 +97,10 @@ class mix(object):
                 global_step -= b
                 self.curr = self.values[i]
                 self.curr.set_global_step(global_step)
-        self.keys = config.keys()
 
     def get(self):
         self.global_step += 1
-        if self.global_step in self.keys:
+        if self.global_step in self.boundaries:
             self.curr = self.values[self.boundaries.index(self.global_step)]
         return self.curr.get()
 
