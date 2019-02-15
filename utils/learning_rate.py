@@ -104,6 +104,16 @@ class mix(object):
             self.curr = self.values[self.boundaries.index(self.global_step)]
         return self.curr.get()
 
+    def set_global_step(self, global_step):
+        self.global_step = global_step
+        self.curr = self.values[0]
+        self.curr.set_global_step(global_step)
+        for i, b in enumerate(self.boundaries):
+            if self.global_step >= b:
+                global_step -= b
+                self.curr = self.values[i]
+                self.curr.set_global_step(global_step)
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
