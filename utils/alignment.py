@@ -41,12 +41,12 @@ class Align(object):
         self.scale = scale
         self.n = np.array([[1, 0, 0],
                       [0, 1, 0],
-                      [-self.scale[1] / 2, -self.scale[0] / 2, 1]])
+                      [-self.scale[1] / 2, -self.scale[0] / 2, 1]], dtype=np.float32)
         self.p = np.array([[1, 0, 0],
                       [0, 1, 0],
-                      [self.scale[1] / 2, self.scale[0] / 2, 1]])
+                      [self.scale[1] / 2, self.scale[0] / 2, 1]], dtype=np.float32)
 
-    def __call__(self, image, landmarks, noise=(0, 0), angle=0):
+    def __call__(self, image, landmarks, noise=(0, 0), radian=0):
         """
         :param image: (H, W, 3)
         :param landmarks: (N, 2), unnormalized
@@ -61,11 +61,11 @@ class Align(object):
         # reference[: 0] += noise[0]
         # reference[:, 1] += noise[1]
         T = pdb.procrustes(x, reference)
-        rotate = np.array([[np.cos(angle), np.sin(angle), 0],
-                           [-np.sin(angle), np.cos(angle), 0],
-                           [0, 0, 1]])
+        rotate = np.array([[np.cos(radian), np.sin(radian), 0],
+                           [-np.sin(radian), np.cos(radian), 0],
+                           [0, 0, 1]], dtype=np.float32)
 
-        T = np.c_[T, [0,0,1]]
+        T = np.c_[T, np.array([0, 0, 1], dtype=np.float32)]
         T = (T @ self.n @ rotate @ self.p)[:, 0:2]
         T[2, 0] += noise[0]
         T[2, 1] += noise[1]

@@ -1,5 +1,6 @@
 import sys
 from data.align_dataset import AlignDataset
+from data.bbox_dataset import BBoxDataset
 from utils.alignment import Align
 import torch
 from torch.utils.data import DataLoader
@@ -17,11 +18,16 @@ metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 
 if __name__ == "__main__":
     net = Dense201().cuda()
-    net.load_state_dict(torch.load('../backup/align-jitter.pth'))
+    net.load_state_dict(torch.load('../backup/dense-model-133900.pth'))
     net.eval()
     PR_list = []
     GT_list = []
     for pose in range(1, 12):
+        # a = BBoxDataset('/data/icme/data/picture',
+        #                 '/data/icme/data/landmark',
+        #                 '/data/icme/bbox',
+        #                 '/data/icme/valid',
+        #                 phase='eval', bins=[pose])
         a = AlignDataset('/data/icme/data/picture',
                          '/data/icme/data/landmark',
                          '/data/icme/data/pred_landmark',

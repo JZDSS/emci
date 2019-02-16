@@ -17,7 +17,8 @@ class AlignDataset(FaceDataset):
                  shape=(224, 224),
                  flip=True,
                  ldmk_ids=[i for i in range(106)],
-                 max_jitter=3):
+                 max_jitter=3,
+                 max_radian=0):
         super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
@@ -25,14 +26,19 @@ class AlignDataset(FaceDataset):
         if phase == 'train':
             self.flip = flip
             self.max_jitter = max_jitter
+            self.max_radian = max_radian
         else:
             self.flip = False
             self.max_jitter = 0
+            self.max_radian = 0
 
     def __getitem__(self, item):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
         al_ldmk = utils.read_mat(self.algin_ldmk[item])
-        image, _, t = self.aligner(image, al_ldmk, noise=np.random.uniform(-self.max_jitter, self.max_jitter, 2))
+        image, _, t = self.aligner(image,
+                                   al_ldmk,
+                                   noise=np.random.uniform(-self.max_jitter, self.max_jitter, 2),
+                                   radian=np.random.uniform(-self.max_radian, self.max_radian))
         landmarks = landmarks @ t[0:2, :] + t[2, :]
         # start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
         # start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
