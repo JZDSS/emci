@@ -9,6 +9,8 @@ class Saver:
         :param model_name: 模型名
         :param max_keep: 保存最近的max_keep个模型
         """
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         self.dir = dir
         self.model_name = model_name
         self.max_keep = max_keep

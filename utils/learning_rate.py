@@ -1,5 +1,5 @@
 import math
-
+from proto import all_pb2
 
 class exponential_decay(object):
 
@@ -113,6 +113,44 @@ class mix(object):
                 global_step -= b
                 self.curr = self.values[i]
                 self.curr.set_global_step(global_step)
+def get_exp(cfg):
+    return exponential_decay(learning_rate=cfg.start_lr,
+                                           decay_steps=cfg.decay_steps,
+                                           decay_rate=cfg.decay_rate,
+                                           staircase=cfg.staircase)
+
+
+def get_pie(cfg):
+    boundaries = [b for b in cfg.boundary]
+    values = [v for v in cfg.value]
+    return piecewise_constant(boundaries, values)
+
+
+def get_pol(cfg):
+    return polynomial_decay(learning_rate=cfg.learning_rate,
+                                          decay_steps=cfg.decay_steps,
+                                          end_learning_rate=cfg.end_learning_rate,
+                                          power=cfg.power,
+                                          cycle=cfg.cycle)
+
+
+def get_mix(cfg):
+    mix_cfg = {}
+    for item in cfg.item:
+        mix_cfg[item.boundary] = get_lr(item.lr)
+    return mix(mix_cfg)
+
+
+def get_lr(cfg):
+
+    if cfg.type == all_pb2.LearningRate.EXPONENTIAL:
+        return get_exp(cfg.exponential_decay)
+    elif cfg.type == all_pb2.LearningRate.PIECEWISE:
+        return get_pie(cfg.piecewise_constant)
+    elif cfg.type == all_pb2.LearningRate.POLYNOMIAL:
+        return get_pol(cfg.polynomial_decay)
+    elif cfg.type == all_pb2.LearningRate.MIX:
+        return get_mix(cfg.mix)
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
