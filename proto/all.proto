@@ -75,6 +75,9 @@ enum Device {
 message Config {
     string root = 1;
     LearningRate lr = 2;
-    Loss loss = 3;
-    Device device = 4;
+    float weight_decay = 3;
+    int32 batch_size = 4;
+    int32 max_iter = 5;
+    Loss loss = 6;
+    Device device = 7;
 }
