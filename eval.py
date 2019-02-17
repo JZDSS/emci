@@ -4,6 +4,7 @@ from data.bbox_dataset import BBoxDataset
 import torch
 from torch.utils.data import DataLoader
 from layers.module.wing_loss import WingLoss
+from layers.module.wing_loss2 import WingLoss2
 from models.saver import Saver
 from models.resnet50 import ResNet50
 from models.resnet18 import ResNet18
@@ -17,30 +18,33 @@ from utils.alignment import Align
 from data.bbox_dataset import BBoxDataset
 from data.align_dataset import AlignDataset
 
-net = Dense201()
+net = Dense201(num_classes=212).cuda()
 
-criterion = WingLoss(10, 2)
-
+criterion = WingLoss2(5, 2, 15, 2)
+# criterion = WingLoss(10, 2)
 #PATH = './ckpt'
-a = BBoxDataset('/data/icme/data/picture',
-                '/data/icme/data/landmark',
-                '/data/icme/bbox',
-                '/data/icme/valid',
-                phase='eval')
-# a = AlignDataset('/data/icme/data/picture',
-#                  '/data/icme/data/landmark',
-#                  '/data/icme/data/pred_landmark',
-#                  '/data/icme/valid',
-#                  Align('../cache/mean_landmarks.pkl', (224, 224), (0.15, 0.05)),
-#                  phase='eval')
+# a = BBoxDataset('/data/icme/data/picture',
+#                     '/data/icme/data/landmark',
+#                     '/data/icme/bbox',
+#                     '/data/icme/valid', phase='eval')
+a = AlignDataset('/data/icme/data/picture',
+                 '/data/icme/data/landmark',
+                 '/data/icme/data/pred_landmark',
+                 '/data/icme/valid',
+                 Align('../cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+                       ), # idx=list(range(51, 66))),
+                 phase='eval',
+                 # ldmk_ids=list(range(51, 66))
+                 )
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
-saver = Saver('./ckpt', 'model')
+saver = Saver('../ckpt', 'model')
+saver2 = Saver('../snapshot', 'wing2(5,15)-align-j3-margin-0_2-0_1_', max_keep=5)
 current = None
 net.eval()
 batch_size = 4
 epoch_size = len(a) // batch_size
-writer = SummaryWriter('logs/dense_e/valid')
+writer = SummaryWriter('logs/wing2(5,15)-align-j3-margin-0_2-0_1_/valid')
 metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
 while True:
     if current == saver.last_ckpt():
@@ -60,17 +64,17 @@ while True:
         landmarks = None
         gt = None
         pr = None
-        for iteration in range(4):
+        for iteration in range(40):
             images, landmarks = next(batch_iterator)
-            images = images
-            landmarks = landmarks
+            images = images.cuda()
+            landmarks = landmarks.cuda()
             with torch.no_grad():
                 out = net.forward(images)
 
             loss = criterion(out, landmarks)
             pr = out.cpu().data.numpy()
             gt = landmarks.cpu().data.numpy()
-            nme = metrics.nme.update(np.reshape(gt, (-1, 106, 2)), np.reshape(pr, (-1, 106, 2)))
+            nme = metrics.nme.update(np.reshape(gt, (-1, gt.shape[1]//2, 2)), np.reshape(pr, (-1, gt.shape[1]//2, 2)))
             metrics.auc.update(nme)
             metrics.loss.update(loss.item())
         image = images.cpu().data.numpy()[0]
@@ -86,7 +90,9 @@ while True:
 
         metrics.clear()
         current = last
-
+        if current_iter % 10000 == 0:
+            state = net.state_dict()
+            saver2.save(state, current_iter)
 
 
 
