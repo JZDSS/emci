@@ -23,8 +23,9 @@ class Saver:
         if len(self.cache) > self.max_keep:
             os.remove(self.cache[0])
             del self.cache[0]
-        cmd = 'mv %s %s' % (path + '.tmp', path)
-        os.system(cmd)
+        # cmd = 'mv %s %s' % (path + '.tmp', path)
+        # os.system(cmd)
+        os.rename(path + '.tmp', path)
 
     def last_ckpt(self):
         names = os.listdir(self.dir)
