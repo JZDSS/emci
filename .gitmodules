@@ -1,3 +1,3 @@
-[submodule "lib"]
-	path = lib
+[submodule "libs/center_loss"]
+	path = libs/center_loss
 	url = https://github.com/KaiyangZhou/pytorch-center-loss.git

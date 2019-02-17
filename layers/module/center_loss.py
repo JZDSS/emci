@@ -1,3 +1,3 @@
-from lib import center_loss
+from lib.center_loss import center_loss
 
 CenterLoss = center_loss.CenterLoss
