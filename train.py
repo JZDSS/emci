@@ -2,7 +2,7 @@ import os
 import argparse
 import numpy as np
 from tensorboardX import SummaryWriter
-
+import shutil
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -24,7 +24,7 @@ from google.protobuf import text_format
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-c', '--config', default='configs/wing2(5,13)-align-j3-m0_2_0_15.cfg', type=str)
+parser.add_argument('-c', '--config', default='configs/wing2(5,13)-bbox.cfg', type=str)
 args = parser.parse_args()
 
 cfg = all_pb2.Config()
@@ -32,6 +32,9 @@ with open(args.config, "r") as f:
     proto_str = f.read()
     text_format.Merge(proto_str, cfg)
 
+if not os.path.exists(cfg.root):
+    os.makedirs(cfg.root)
+shutil.copy(args.config, cfg.root)
 # config = {0: learning_rate.polynomial_decay(1e-8, 8000, 2e-5),
 #           8001: learning_rate.exponential_decay(2e-5, 500, 0.993)}
 # lr_gen = learning_rate.mix(config)
@@ -50,22 +53,22 @@ if __name__ == '__main__':
     net = Dense201(num_classes=212)
     if cfg.device == all_pb2.GPU:
         net = net.cuda()
-    # a = BBoxDataset('/data/icme/data/picture',
-    #                 '/data/icme/data/landmark',
-    #                 '/data/icme/bbox',
-    #                 '/data/icme/train',
-    #                 max_jitter=0)
-    a = AlignDataset('/data/icme/data/picture',
-                     '/data/icme/data/landmark',
-                     '/data/icme/data/landmark',
-                     '/data/icme/train',
-                     Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-                           ),# idx=list(range(51, 66))),
-                     flip=True,
-                     max_jitter=3,
-                     max_radian=0
-                     # ldmk_ids=list(range(51, 66))
-                     )
+    a = BBoxDataset('/data/icme/data/picture',
+                    '/data/icme/data/landmark',
+                    '/data/icme/bbox',
+                    '/data/icme/train',
+                    max_jitter=0)
+    # a = AlignDataset('/data/icme/data/picture',
+    #                  '/data/icme/data/landmark',
+    #                  '/data/icme/data/landmark',
+    #                  '/data/icme/train',
+    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+    #                        ),# idx=list(range(51, 66))),
+    #                  flip=True,
+    #                  max_jitter=3,
+    #                  max_radian=0
+    #                  # ldmk_ids=list(range(51, 66))
+    #                  )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)
@@ -125,4 +128,3 @@ if __name__ == '__main__':
             state = net.state_dict()
             saver.save(state, iteration)
 
-    torch.save(net.state_dict())
