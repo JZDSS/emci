@@ -105,7 +105,7 @@ while True:
 
         metrics.clear()
         current = last
-        if current_iter % 10000 == 0:
+        if current_iter % 5000 == 0:
             state = net.state_dict()
             saver2.save(state, current_iter)
 
