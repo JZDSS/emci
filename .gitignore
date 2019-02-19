@@ -8,3 +8,5 @@ ckpt/
 *.pth
 test.py
 proto/*.py
+exp/
+qy/
