@@ -66,14 +66,16 @@ def main():
             id = get_id(filename)
             if np.random.uniform(0, 1) < 0.8:
                 split[id] = 'train'
+                landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
+                bbox_path = os.path.join(bbox_dir, filename + '.rect')
+                bbox = utils.read_bbox(bbox_path)
+                landmarks = utils.read_mat(landmark_path)
+                landmarks = utils.norm_landmarks(landmarks, bbox)
+                norm_landmarks.append(landmarks)
             else:
                 split[id] = 'valid'
-            landmark_path = os.path.join(lamdmark_dir, filename + '.txt')
-            bbox_path = os.path.join(bbox_dir, filename + '.rect')
-            bbox = utils.read_bbox(bbox_path)
-            landmarks = utils.read_mat(landmark_path)
-            landmarks = utils.norm_landmarks(landmarks, bbox)
-            norm_landmarks.append(landmarks)
+                bbox_path = os.path.join(bbox_dir, filename + '.rect')
+                bbox = utils.read_bbox(bbox_path)
             bboxes.append(bbox)
         norm_landmarks = np.stack(norm_landmarks, axis=0)
         mean_landmarks = np.mean(norm_landmarks, axis=0)
@@ -91,7 +93,11 @@ def main():
     except:
         transform_matrix = []
         aligned = []
-        for i, filename in enumerate(filenames):
+        i = -1
+        for filename in filenames:
+            if split[get_id(filename)] == 'valid':
+                continue
+            i += 1
             curr = norm_landmarks[i, :]
             one = np.ones(shape=(106, 1))
             curr = np.concatenate((curr, one), axis=1)
