@@ -67,6 +67,25 @@ message Loss {
     WingLoss2 wing_loss2 = 3;
 }
 
+message BBoxDataset {
+
+}
+
+message AlignDataset {
+
+}
+
+message Dataset {
+    enum DatasetType {
+        None = 0;
+        BBOX = 1;
+        ALIGN = 2;
+    }
+    DatasetType type = 1;
+    BBoxDataset bbox_dataset = 2;
+    AlignDataset align_dataset = 3;
+}
+
 enum Device {
     CPU = 0;
     GPU = 1;
