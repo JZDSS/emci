@@ -27,16 +27,14 @@ class AlignDataset(FaceDataset):
         image, landmarks = super(AlignDataset, self).__getitem__(item)
         al_ldmk = utils.read_mat(self.algin_ldmk[item])
         image, _, t = self.aligner(image, al_ldmk)
-        start_y = np.random.randint(0, self.aligner.scale[0] - self.shape[0] + 1)
-        start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
-        image = image[start_y:start_y + self.shape[0], start_x :start_x + self.shape[1]]
+
         if self.phase == 'train':
             if self.flip:
                 image, landmarks = utils.random_flip(image, landmarks, 0.5)
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
             image = utils.random_color(image)
 
-        image = cv2.resize(image, self.shape)
+        # image = cv2.resize(image, self.shape)
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         # landmarks = landmarks[self.ldmk_ids, :]
         return image, np.reshape(landmarks, (-1)), t, self.file_list[item]
