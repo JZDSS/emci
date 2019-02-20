@@ -2,10 +2,11 @@ import torch.nn as nn
 from torchvision.models import densenet
 import torch.utils.model_zoo as model_zoo
 import re
+from models.saver import Saver
 
 
 class Dense201(densenet.DenseNet):
-    def __init__(self, pretrained=True, num_classes=212, **kwargs):
+    def __init__(self, pretrained=True, num_classes=212, ckpt=None, **kwargs):
         super(Dense201, self).__init__(num_init_features=64, growth_rate=32, block_config=(6, 12, 48, 32),
                          num_classes=num_classes, **kwargs)
         if pretrained:
@@ -26,7 +27,9 @@ class Dense201(densenet.DenseNet):
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
         self.sigmoid = nn.Sigmoid()
-
+        if not ckpt is None:
+            saver = Saver(ckpt, 'model')
+            saver.load_last_ckpt(self)
 
     def forward(self, x):
         out = super(Dense201, self).forward(x)
