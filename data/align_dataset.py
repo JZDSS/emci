@@ -18,8 +18,9 @@ class AlignDataset(FaceDataset):
                  flip=True,
                  ldmk_ids=[i for i in range(106)],
                  max_jitter=3,
-                 max_radian=0):
-        super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
+                 max_radian=0,
+                 img_format='png'):
+        super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape, img_format)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
         self.ldmk_ids = ldmk_ids

@@ -13,17 +13,15 @@ class BBoxDataset(FaceDataset):
                  bin_dir,
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
-                 shape=(224, 224)):
-        super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape)
+                 shape=(224, 224),
+                 img_format='png'):
+        super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape, img_format)
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
 
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
-        bbox_path = self.bboxes[item]
-        try:
-            bbox = utils.read_bbox(bbox_path)
-        except:
-            bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
+
+        bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
 
         minx, miny, maxx, maxy = bbox
         image = image[miny:maxy + 1, minx:maxx + 1, :]

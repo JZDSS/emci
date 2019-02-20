@@ -14,25 +14,25 @@ from torch.utils.data import DataLoader
 net = dense201.Dense201().cuda()
 
 #PATH = './ckpt'
-a = BBoxDataset('/data/icme/data/picture',
-                '/data/icme/data/landmark',
+a = BBoxDataset('/data/icme/crop/data/picture',
+                '/data/icme/crop/data/landmark',
                 '/data/icme/bbox',
                 '/data/icme/valid',
                 phase='eval')
 #Saver.dir=PATH
-saver = Saver('backup', 'model')
+saver = Saver('exp/wing2_5_13-bbox/snapshot', 'model')
 current = None
 net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'dense-model-133900.pth'
+model_name = 'model-200000.pth'
 saver.load(net, model_name)
 
 
 all_pr = []
 all_gt = []
-save_dir = '/data/icme/data/pred_landmark'
+save_dir = '/data/icme/crop/data/pred_landmark'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=4))

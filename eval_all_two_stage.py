@@ -14,8 +14,8 @@ from utils.alignment import Align
 net = two_stage.TwoStage(Align('cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1))).cuda()
 
 #PATH = './ckpt'
-a = OriginalDataset('/data/icme/data/picture',
-                 '/data/icme/data/landmark',
+a = OriginalDataset('/data/icme/crop/data/picture',
+                 '/data/icme/crop/data/landmark',
                  '/data/icme/bbox',
                  '/data/icme/valid',
                  phase='eval')
@@ -27,7 +27,7 @@ metrics = Metrics().add_nme().add_auc()
 
 all_pr = []
 all_gt = []
-save_dir = '/data/icme/data/pred_landmark_two_stage'
+save_dir = '/data/icme/crop/data/pred_landmark_two_stage'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=4))

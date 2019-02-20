@@ -24,7 +24,7 @@ from google.protobuf import text_format
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-c', '--config', default='configs/wing2(5,13)-bbox.cfg', type=str)
+parser.add_argument('-c', '--config', default='configs/wing2(5,13)-align-j3-m0_2_0_1.cfg', type=str)
 args = parser.parse_args()
 
 cfg = all_pb2.Config()
@@ -53,22 +53,22 @@ if __name__ == '__main__':
     net = Dense201(num_classes=212)
     if cfg.device == all_pb2.GPU:
         net = net.cuda()
-    a = BBoxDataset('/data/icme/data/picture',
-                    '/data/icme/data/landmark',
-                    '/data/icme/bbox',
-                    '/data/icme/train',
-                    max_jitter=0)
-    # a = AlignDataset('/data/icme/data/picture',
-    #                  '/data/icme/data/landmark',
-    #                  '/data/icme/data/landmark',
-    #                  '/data/icme/train',
-    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-    #                        ),# idx=list(range(51, 66))),
-    #                  flip=True,
-    #                  max_jitter=3,
-    #                  max_radian=0
-    #                  # ldmk_ids=list(range(51, 66))
-    #                  )
+    # a = BBoxDataset('/data/icme/data/picture',
+    #                 '/data/icme/data/landmark',
+    #                 '/data/icme/bbox',
+    #                 '/data/icme/train',
+    #                 max_jitter=0)
+    a = AlignDataset('/data/icme/crop/data/picture',
+                     '/data/icme/crop/data/landmark',
+                     '/data/icme/crop/data/landmark',
+                     '/data/icme/train',
+                     Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+                           ),# idx=list(range(51, 66))),
+                     flip=True,
+                     max_jitter=3,
+                     max_radian=0
+                     # ldmk_ids=list(range(51, 66))
+                     )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)

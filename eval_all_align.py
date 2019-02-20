@@ -15,29 +15,29 @@ from utils.alignment import Align
 net = dense201.Dense201().cuda()
 
 #PATH = './ckpt'
-a = AlignDataset('/data/icme/data/picture',
-                 '/data/icme/data/landmark',
-                 '/data/icme/data/pred_landmark',
+a = AlignDataset('/data/icme/crop/data/picture',
+                 '/data/icme/crop/data/landmark',
+                 '/data/icme/crop/data/pred_landmark',
                  '/data/icme/valid',
-                 Align('cache/mean_landmarks.pkl', (224, 224), (0.15, 0.1),
+                 Align('cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
                        ), # idx=list(range(51, 66))),
                  phase='eval',
                  # ldmk_ids=list(range(51, 66))
                  )
 #Saver.dir=PATH
-saver = Saver('backup', 'model')
+saver = Saver('exp/wing2_5_13-align-j3-m0_2_0_1-2/snapshot', 'model')
 current = None
 net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'align-jitter227-model-120000.pth'
+model_name = 'model-65000.pth'
 saver.load(net, model_name)
 
 
 all_pr = []
 all_gt = []
-save_dir = '/data/icme/data/pred_landmark_align'
+save_dir = '/data/icme/crop/data/pred_landmark_align'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
 batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=4))
@@ -56,6 +56,7 @@ for i in range(len(a)):
     pr[:, 0] *= a.shape[1]
     pr[:, 1] *= a.shape[0]
     pr = a.aligner.inverse(pr, t[0])
+    # pr = np.round(pr)
     gt = np.reshape(gt, (-1, 2))
     all_pr.append(pr)
     all_gt.append(gt)
