@@ -36,23 +36,32 @@ class TwoStage(nn.Module):
         pr2 = self.align.inverse(pr2, t)
         return pr2
 
-    # def forward(self, image):
-        #
-        # al_ldmk = self.first(image)[0]
-        # image = image.cpu().data.numpy()[0]
-        #
-        # image = np.transpose(image, (1, 2, 0))
-        #
-        # al_ldmk = al_ldmk.view(-1, 2).cpu().data.numpy()
-        # al_ldmk *= image.shape[1]
-        #
-        # image, _, t = self.align(image, al_ldmk)
-        #
-        # image = np.expand_dims(np.transpose(image, (2, 0, 1)), 0)
-        # image = torch.from_numpy(image).cuda()
-        #
-        # pr = self.second(image).view((-1, 2)).cpu().data.numpy()
-        # pr *= image.shape[-1]
-        # pr = self.align.inverse(pr, t)
-        # pr /= image.shape[-1]
-        # return pr
+
+    # cropped version
+    # def forward(self, image, bbox):
+    #     minx, miny, maxx, maxy = bbox
+    #     im1_crop = image[miny:maxy + 1, minx:maxx + 1, :]
+    #     im1 = cv2.resize(im1_crop, self.shape)
+    #     im1 = np.transpose(im1, (2, 0, 1)).astype(np.float32)
+    #     im1 = torch.from_numpy(np.expand_dims(im1, 0)).cuda()
+    #     pr1 = self.first(im1)
+    #
+    #     pr1 = np.reshape(pr1.cpu().data.numpy(), (-1, 2))
+    #     # pr1 = utils.inv_norm_landmark(np.reshape(pr1, (-1, 2)), bbox)
+    #
+    #     w = float(maxx - minx)
+    #     h = float(maxy - miny)
+    #     pr1[:, 0] = pr1[:, 0] * w
+    #     pr1[:, 1] = pr1[:, 1] * h
+    #
+    #     im2, _, t = self.align(im1_crop, pr1)
+    #     im2 = np.transpose(im2, (2, 0, 1)).astype(np.float32)
+    #     im2 = torch.from_numpy(np.expand_dims(im2, 0)).cuda()
+    #     pr2 = self.second(im2)
+    #
+    #     pr2 = pr2.cpu().data.numpy()
+    #     pr2 = np.reshape(pr2, (-1, 2))
+    #     pr2 *= im2.shape[-1]
+    #     pr2 = self.align.inverse(pr2, t)
+    #     pr2 += [minx, miny]
+    #     return pr2
