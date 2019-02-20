@@ -56,15 +56,27 @@ message WingLoss2 {
     float epsilon2 = 4;
 }
 
+message PoseLoss {
+    float max_w1 = 1;
+    float min_w1 = 2;
+    float max_epsilon1 = 3;
+    float min_epsilon1 = 4;
+    float max_w2 = 5;
+    float min_w2 = 6;
+    float max_epsilon2 = 7;
+    float min_epsilon2 = 8;
+}
 message Loss {
     enum LossType {
         NONE = 0;
         WING = 1;
         WING2 = 2;
+        POSE = 3;
     }
     LossType type = 1;
     WingLoss wing_loss = 2;
     WingLoss2 wing_loss2 = 3;
+    PoseLoss pose_loss = 4;
 }
 
 message BBoxDataset {

@@ -24,7 +24,7 @@ from google.protobuf import text_format
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
-parser.add_argument('-c', '--config', default='configs/wing2(5,13)-align-j3-m0_2_0_1.cfg', type=str)
+parser.add_argument('-c', '--config', type=str)
 args = parser.parse_args()
 
 cfg = all_pb2.Config()
