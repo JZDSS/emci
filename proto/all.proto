@@ -1,4 +1,10 @@
 syntax = "proto3";
+message Align {
+    string reference_path = 1;
+    int32 scale = 2;
+    float margin_x = 3;
+    float margin_y = 4;
+}
 
 message ExponentialDecay {
     float start_lr = 1;
@@ -66,12 +72,17 @@ message PoseLoss {
     float max_epsilon2 = 7;
     float min_epsilon2 = 8;
 }
+
+message BoundaryLoss {}
+
 message Loss {
     enum LossType {
         NONE = 0;
         WING = 1;
         WING2 = 2;
         POSE = 3;
+        L2 = 4;
+        BOUNDARY = 5;
     }
     LossType type = 1;
     WingLoss wing_loss = 2;
@@ -80,11 +91,29 @@ message Loss {
 }
 
 message BBoxDataset {
-
+    string img_dir = 1;
+    string ldmk_dir = 2;
+    string bin_dir = 3;
+    int32 bins = 4;
+    string phase= 5;
+    int32 size = 6;
+    int32 max_jitter = 7;
+    string img_format = 8;
 }
 
 message AlignDataset {
-
+    string img_dir = 1;
+    string gt_ldmk_dir = 2;
+    string al_ldmk_dir = 3;
+    string bin_dir = 4;
+    Align aligner = 5;
+    int32 bins = 6;
+    string phase = 7;
+    int32 size = 8;
+    bool filp = 9;
+    int32 max_jitter = 10;
+    float max_radian = 11;
+    string img_format = 12;
 }
 
 message Dataset {
