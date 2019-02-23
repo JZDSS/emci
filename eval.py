@@ -1,12 +1,9 @@
 import os
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
-from data.bbox_dataset import BBoxDataset
 import torch
 from torch.utils.data import DataLoader
-from layers.module import loss
+from sparse import loss
 from models.saver import Saver
-from models.resnet50 import ResNet50
-from models.resnet18 import ResNet18
 from models.dense201 import Dense201
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -37,19 +34,18 @@ if cfg.device == all_pb2.GPU:
 criterion = loss.get_criterion(cfg.loss)
 # criterion = WingLoss(10, 2)
 #PATH = './ckpt'
-# a = BBoxDataset('/data/icme/data/picture',
-#                     '/data/icme/data/landmark',
-#                     '/data/icme/bbox',
-#                     '/data/icme/valid', phase='eval')
-a = AlignDataset('/data/icme/crop/data/picture',
-                 '/data/icme/crop/data/landmark',
-                 '/data/icme/crop/data/pred_landmark',
-                 '/data/icme/valid',
-                 Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-                       ), # idx=list(range(51, 66))),
-                 phase='eval',
-                 # ldmk_ids=list(range(51, 66))
-                 )
+a = BBoxDataset('/data/icme/crop/data/picture',
+                    '/data/icme/crop/data/landmark',
+                    '/data/icme/valid', phase='eval')
+# a = AlignDataset('/data/icme/crop/data/picture',
+#                  '/data/icme/crop/data/landmark',
+#                  '/data/icme/crop/data/pred_landmark',
+#                  '/data/icme/valid',
+#                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+#                        ), # idx=list(range(51, 66))),
+#                  phase='eval',
+#                  # ldmk_ids=list(range(51, 66))
+#                  )
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
 saver = Saver(os.path.join(cfg.root, 'ckpt'), 'model')
@@ -105,7 +101,7 @@ while True:
 
         metrics.clear()
         current = last
-        if current_iter % 1000 == 0:
+        if current_iter % 2000 == 0:
             state = net.state_dict()
             saver2.save(state, current_iter)
 

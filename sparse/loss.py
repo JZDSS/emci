@@ -1,4 +1,4 @@
-from layers.module import wing_loss, wing_loss2, pose_loss
+from layers.module import wing_loss, wing_loss2, pose_loss, l2_loss, boundary_loss
 from proto import all_pb2
 
 def get_criterion(cfg):
@@ -15,3 +15,7 @@ def get_criterion(cfg):
                                   cfg.max_epsilon1, cfg.min_epsilon1,
                                   cfg.max_w2, cfg.min_w2,
                                   cfg.max_epsilon2, cfg.min_epsilon2)
+    elif cfg.type == all_pb2.Loss.L2:
+        return l2_loss.L2Loss()
+    elif cfg.type == all_pb2.Loss.BOUNDARY:
+        return boundary_loss.BoundaryLoss()

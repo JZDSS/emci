@@ -3,24 +3,21 @@ import argparse
 import numpy as np
 from tensorboardX import SummaryWriter
 import shutil
-import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
 from data.utils import draw_landmarks
 from data.bbox_dataset import BBoxDataset
 from data.align_dataset import AlignDataset
-from layers.module import loss
+from sparse import loss, learning_rate
 
 from models.saver import Saver
-from models.resnet50 import ResNet50
-from models.resnet18 import ResNet18
 from models.dense201 import Dense201
 from utils.metrics import Metrics
 from utils.alignment import Align
-from utils import learning_rate
 from proto import all_pb2
 from google.protobuf import text_format
+
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
 
@@ -53,22 +50,21 @@ if __name__ == '__main__':
     net = Dense201(num_classes=212)
     if cfg.device == all_pb2.GPU:
         net = net.cuda()
-    # a = BBoxDataset('/data/icme/data/picture',
-    #                 '/data/icme/data/landmark',
-    #                 '/data/icme/bbox',
-    #                 '/data/icme/train',
-    #                 max_jitter=0)
-    a = AlignDataset('/data/icme/crop/data/picture',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/train',
-                     Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-                           ),# idx=list(range(51, 66))),
-                     flip=True,
-                     max_jitter=3,
-                     max_radian=0
-                     # ldmk_ids=list(range(51, 66))
-                     )
+    a = BBoxDataset('/data/icme/crop/data/picture',
+                    '/data/icme/crop/data/landmark',
+                    '/data/icme/train',
+                    max_jitter=0)
+    # a = AlignDataset('/data/icme/crop/data/picture',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/train',
+    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+    #                        ),# idx=list(range(51, 66))),
+    #                  flip=True,
+    #                  max_jitter=3,
+    #                  max_radian=0
+    #                  # ldmk_ids=list(range(51, 66))
+    #                  )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)
@@ -76,10 +72,15 @@ if __name__ == '__main__':
     optimizer = optim.Adam(net.parameters(), lr=0, weight_decay=cfg.weight_decay)
     # optimizer = optim.SGD(net.parameters(), lr=0, weight_decay=cfg.weight_decay, momentum=0.9)
     saver = Saver(os.path.join(cfg.root, 'ckpt'), 'model', 10)
+    opt_saver = Saver(os.path.join(cfg.root, 'opt_ckpt'), 'opt', 10)
     last = saver.last_ckpt()
     start_iter = 0 if last is None else int(last.split('.')[0].split('-')[-1])
     if start_iter > 0:
         saver.load(net, last)
+        try:
+            opt_saver.load(optimizer, opt_saver.last_ckpt())
+        except:
+            pass
         lr_gen.set_global_step(start_iter)
 
     running_loss = 0.0
@@ -104,6 +105,7 @@ if __name__ == '__main__':
         # backprop
         optimizer.zero_grad()
         loss = criterion(out, landmarks)
+        # clip_grad_norm_(net.parameters(), 0.5)
         loss.backward()
         optimizer.step()
         if iteration % 100 == 0:
@@ -127,4 +129,6 @@ if __name__ == '__main__':
             writer.add_histogram("predictionx", out.cpu().data.numpy()[:, 0:212:2], iteration)
             state = net.state_dict()
             saver.save(state, iteration)
+            state = optimizer.state_dict()
+            opt_saver.save(state, iteration)
 
