@@ -1,7 +1,10 @@
 import torch
 from torch import nn
 import logging
-
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S',
+                    filemode='w')
 
 class BoundaryLoss(nn.Module):
 
@@ -16,7 +19,7 @@ class BoundaryLoss(nn.Module):
 
     def forward(self, prediction, target):
         l2 = (prediction - target) ** 2
-        suppressed = torch.where(l2 <= self.threshold, 0, l2).sum(dim=1).mean()
+        suppressed = torch.where(l2 <= self.threshold, torch.zeros_like(l2), l2).sum(dim=1).mean()
         self.mean_loss *= self.mean_decay
         self.mean_loss += self.k * suppressed
         if self.mean_loss < self.decay_threshold:
