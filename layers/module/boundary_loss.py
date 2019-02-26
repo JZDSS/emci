@@ -13,7 +13,7 @@ class BoundaryLoss(nn.Module):
 
     def __init__(self, decay_threshold=0.1, threshold_decay_rate=0.99, mean_decay=0.99):
         super(BoundaryLoss, self).__init__()
-        self.threshold = 1
+        self.threshold = 5e-2
         self.mean_loss = 0.1
         self.threshold_decay_rate = threshold_decay_rate
         self.decay_threshold = decay_threshold
@@ -29,17 +29,17 @@ class BoundaryLoss(nn.Module):
         l1 = torch.abs(prediction - target)
 
         suppressed = torch.where(l1 < self.threshold, self.zero, l1).sum(dim=1).mean()
+        self.update(suppressed.cpu().data.numpy())
         return suppressed
 
     def update(self, loss):
         # if loss <=1e-3:
-        #     self.threshold /= 2
+        #     self.threshold *= self.threshold_decay_rate
         #     logging.info('threshold update: %e' % self.threshold)
         #     self.mean_loss = loss
-        #     return
-        self.mean_loss *= self.mean_decay
-        self.mean_loss += self.k * loss
-        if loss < self.mean_loss:
+        # self.mean_loss *= self.mean_decay
+        # self.mean_loss += self.k * loss
+        if loss < self.threshold * 0.1:
             self.count += 1
         else:
             self.count -= 1
@@ -75,6 +75,6 @@ class BoundaryLossN(nn.Module):
     def forward(self, prediction, target):
         loss = 0
         for j, i in enumerate(list(range(0, 212, 2))):
-            loss += self.bloss[j](prediction[:, i:i + 2])
+            loss += self.bloss[j](prediction[:, i:i + 2], target[:, i:i+2])
 
         return loss

@@ -34,22 +34,22 @@ if cfg.device == all_pb2.GPU:
 criterion = loss.get_criterion(cfg.loss)
 # criterion = WingLoss(10, 2)
 #PATH = './ckpt'
-a = BBoxDataset('/data/icme/crop/data/picture',
-                    '/data/icme/crop/data/landmark',
-                    '/data/icme/valid', phase='eval')
-# a = AlignDataset('/data/icme/crop/data/picture',
-#                  '/data/icme/crop/data/landmark',
-#                  '/data/icme/crop/data/pred_landmark',
-#                  '/data/icme/valid',
-#                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-#                        ), # idx=list(range(51, 66))),
-#                  phase='eval',
-#                  # ldmk_ids=list(range(51, 66))
-#                  )
+# a = BBoxDataset('/data/icme/crop/data/picture',
+#                     '/data/icme/crop/data/landmark',
+#                     '/data/icme/valid', phase='eval')
+a = AlignDataset('/data/icme/crop/data/picture',
+                 '/data/icme/crop/data/landmark',
+                 '/data/icme/crop/data/pred_landmark',
+                 '/data/icme/valid',
+                 Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+                       ), # idx=list(range(51, 66))),
+                 phase='eval',
+                 # ldmk_ids=list(range(51, 66))
+                 )
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
 saver = Saver(os.path.join(cfg.root, 'ckpt'), 'model')
-saver2 = Saver(os.path.join(cfg.root, 'snapshot'), 'model', max_keep=20)
+saver2 = Saver(os.path.join(cfg.root, 'snapshot'), 'model')
 current = None
 net.eval()
 batch_size = 4
