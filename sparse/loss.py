@@ -18,4 +18,13 @@ def get_criterion(cfg):
     elif cfg.type == all_pb2.Loss.L2:
         return l2_loss.L2Loss()
     elif cfg.type == all_pb2.Loss.BOUNDARY:
-        return boundary_loss.BoundaryLoss()
+        cfg = cfg.boundary_loss
+        if cfg.version == all_pb2.BoundaryLoss.SOFT:
+            return boundary_loss.BoundaryLossN(version='soft',
+                                               alpha=cfg.alpha,
+                                               threshold=cfg.threshold,
+                                               threshold_decay=cfg.threshold_decay)
+        elif cfg.version == all_pb2.BoundaryLoss.HARD:
+            return boundary_loss.BoundaryLossN(version='hard',
+                                               threshold=cfg.threshold,
+                                               threshold_decay=cfg.threshold_decay)

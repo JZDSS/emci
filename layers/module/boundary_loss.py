@@ -11,70 +11,77 @@ logging.basicConfig(level=logging.INFO,
 
 class BoundaryLoss(nn.Module):
 
-    def __init__(self, decay_threshold=0.1, threshold_decay_rate=0.99, mean_decay=0.99):
+    def __init__(self, threshold=5e-2, threshold_decay=0.99):
         super(BoundaryLoss, self).__init__()
-        self.threshold = 5e-2
-        self.mean_loss = 0.1
-        self.threshold_decay_rate = threshold_decay_rate
-        self.decay_threshold = decay_threshold
-        self.mean_decay = mean_decay
-        self.k = 1 - mean_decay
-        self.count = 0
-        self.zero = None
+        self.threshold = threshold
+        self.threshold_decay = threshold_decay
 
 
     def forward(self, prediction, target):
-        if self.zero is None:
-            self.zero = torch.zeros_like(target)
-        l1 = torch.abs(prediction - target)
-
-        suppressed = torch.where(l1 < self.threshold, self.zero, l1).sum(dim=1).mean()
-        self.update(suppressed.cpu().data.numpy())
-        return suppressed
+        pass
 
     def update(self, loss):
-        # if loss <=1e-3:
-        #     self.threshold *= self.threshold_decay_rate
-        #     logging.info('threshold update: %e' % self.threshold)
-        #     self.mean_loss = loss
-        # self.mean_loss *= self.mean_decay
-        # self.mean_loss += self.k * loss
         if loss < self.threshold * 0.1:
             self.count += 1
         else:
             self.count -= 1
 
         if self.count == 3:
-            self.threshold *= self.threshold_decay_rate
+            self.threshold *= self.threshold_decay
             logging.info("threshold update: %e" % self.threshold)
             self.count = 0
         elif self.count == -1:
-            self.threshold /= self.threshold_decay_rate
+            self.threshold /= self.threshold_decay
             logging.info("threshold update: %e" % self.threshold)
             self.count = 0
 
-class BoundaryLoss2(nn.Module):
-    def __init__(self, decay_threshold1, decay_rate1, mean_decay1,
-                       decay_threshold2, decay_rate2, mean_decay2):
-        super(BoundaryLoss2, self).__init__()
-        self.bloss1 = BoundaryLoss(decay_threshold1, decay_rate1, mean_decay1)
-        self.bloss2 = BoundaryLoss(decay_threshold2, decay_rate2, mean_decay2)
+
+class SoftBoundaryLoss(BoundaryLoss):
+    def __init__(self, alpha=100, threshold=5e-2, threshold_decay=0.99):
+        super(SoftBoundaryLoss, self).__init__(threshold, threshold_decay)
+        self.alpha = alpha
+        self.c = alpha ** -(1 / alpha)
+        self.d = (1 / self.alpha - 1)
 
     def forward(self, prediction, target):
-        loss1 = self.bloss1(prediction[:, :66], target[:, :66])
-        loss2 = self.bloss2(prediction[:, 66:], target[:, 66:])
-        return loss1 + loss2
+        x = torch.abs(prediction - target)
+        k = self.c * self.threshold ** self.d
+        y = (k * x) ** self.alpha
+        v = (k * self.threshold) ** self.alpha
+        y = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
+        self.update(y.cpu().data.numpy())
+        return y
+
+
+class HardBoundaryLoss(BoundaryLoss):
+    def __init__(self, threshold=5e-2, threshold_decay=0.99):
+        super(HardBoundaryLoss, self).__init__(threshold, threshold_decay)
+        self.zero = None
+
+    def forward(self, prediction, target):
+        if self.zero is None:
+            self.zero = torch.zeros_like(target)
+        x = torch.abs(prediction - target)
+        y = torch.where(x < self.threshold, self.zero, x - self.threshold).sum(dim=1).mean()
+        self.update(y.cpu().data.numpy())
+        return y
+
 
 class BoundaryLossN(nn.Module):
-    def __init__(self):
+    def __init__(self, version='soft', **kwargs):
         super(BoundaryLossN, self).__init__()
+        if version == 'soft':
+            loss = SoftBoundaryLoss
+        elif version == 'hard':
+            loss = HardBoundaryLoss
+        else:
+            raise RuntimeError('Unknown loss type!!')
         self.bloss = []
         for i in range(106):
-            self.bloss.append(BoundaryLoss())
+            self.bloss.append(loss(**kwargs))
 
     def forward(self, prediction, target):
         loss = 0
         for j, i in enumerate(list(range(0, 212, 2))):
             loss += self.bloss[j](prediction[:, i:i + 2], target[:, i:i+2])
-
         return loss

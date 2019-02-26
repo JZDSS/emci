@@ -73,7 +73,16 @@ message PoseLoss {
     float min_epsilon2 = 8;
 }
 
-message BoundaryLoss {}
+message BoundaryLoss {
+    enum Version {
+        SOFT = 0;
+        HARD = 1;
+    }
+    Version version = 1;
+    float threshold = 2;
+    float threshold_decay = 3;
+    float alpha = 4;
+}
 
 message Loss {
     enum LossType {
@@ -88,6 +97,7 @@ message Loss {
     WingLoss wing_loss = 2;
     WingLoss2 wing_loss2 = 3;
     PoseLoss pose_loss = 4;
+    BoundaryLoss boundary_loss = 5;
 }
 
 message BBoxDataset {
