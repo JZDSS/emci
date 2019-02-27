@@ -19,14 +19,11 @@ class Saver:
     def save(self, state, i):
         path = os.path.join(self.dir, '%s-%d.pth' % (self.model_name, i))
         torch.save(state, path + '.tmp')
-        if self.max_keep is None:
-            return
-        self.cache.append(path)
-        if len(self.cache) > self.max_keep:
-            os.remove(self.cache[0])
-            del self.cache[0]
-        # cmd = 'mv %s %s' % (path + '.tmp', path)
-        # os.system(cmd)
+        if not self.max_keep is None:
+            self.cache.append(path)
+            if len(self.cache) > self.max_keep:
+                os.remove(self.cache[0])
+                del self.cache[0]
         os.rename(path + '.tmp', path)
 
     def last_ckpt(self):
