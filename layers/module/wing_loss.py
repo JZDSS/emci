@@ -20,8 +20,8 @@ class WingLoss(nn.Module):
         x = predictions - targets
         t = torch.abs(x)
 
-        return torch.mean(torch.where(t < self.w,
+        return torch.where(t < self.w,
                            self.w * torch.log(1 + t / self.epsilon),
-                           t - self.C))
+                           t - self.C).sum(dim=1).mean()
 
 
