@@ -15,6 +15,7 @@ class BoundaryLoss(nn.Module):
         super(BoundaryLoss, self).__init__()
         self.threshold = threshold
         self.threshold_decay = threshold_decay
+        self.count = 0
 
 
     def forward(self, prediction, target):
@@ -42,15 +43,30 @@ class SoftBoundaryLoss(BoundaryLoss):
         self.alpha = alpha
         self.c = alpha ** -(1 / alpha)
         self.d = (1 / self.alpha - 1)
+        self.zero = None
+
 
     def forward(self, prediction, target):
+        if self.zero is None:
+            self.zero = torch.zeros_like(target)
+
         x = torch.abs(prediction - target)
+        suppressed = torch.where(x < self.threshold, x, self.zero)
         k = self.c * self.threshold ** self.d
-        y = (k * x) ** self.alpha
+        y = (k * suppressed) ** self.alpha
         v = (k * self.threshold) ** self.alpha
-        y = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
-        self.update(y.cpu().data.numpy())
-        return y
+        loss = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
+        self.update(loss.cpu().data.numpy())
+
+        return loss
+
+        # x = torch.abs(prediction - target)
+        # k = self.c * self.threshold ** self.d
+        # y = (k * x) ** self.alpha
+        # v = (k * self.threshold) ** self.alpha
+        # y = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
+        # self.update(y.cpu().data.numpy())
+        # return y
 
 
 class HardBoundaryLoss(BoundaryLoss):
