@@ -44,27 +44,27 @@ def adjust_learning_rate(optimizer):
     return lr
 
 if __name__ == '__main__':
-    metrics = Metrics().add_nme(0.5).add_auc(decay=0.5).add_loss(decay=0.5)
+    metrics = Metrics().add_nme(0.5).add_auc(decay=0.5, step=0.01).add_loss(decay=0.5)
 
     writer = SummaryWriter(os.path.join(cfg.root, 'logs/train'))
     net = Dense201(num_classes=212)
     if cfg.device == all_pb2.GPU:
         net = net.cuda()
-    # a = BBoxDataset('/data/icme/crop/data/picture',
-    #                 '/data/icme/crop/data/landmark',
-    #                 '/data/icme/train',
-    #                 max_jitter=0)
-    a = AlignDataset('/data/icme/crop/data/picture',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/train',
-                     Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-                           ),# idx=list(range(51, 66))),
-                     flip=True,
-                     max_jitter=3,
-                     max_radian=0
-                     # ldmk_ids=list(range(51, 66))
-                     )
+    a = BBoxDataset('/data/icme/crop/data/picture',
+                    '/data/icme/crop/data/landmark',
+                    '/data/icme/train',
+                    max_jitter=0)
+    # a = AlignDataset('/data/icme/crop/data/picture',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/train',
+    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+    #                        ),# idx=list(range(51, 66))),
+    #                  flip=True,
+    #                  max_jitter=3,
+    #                  max_radian=0
+    #                  # ldmk_ids=list(range(51, 66))
+    #                  )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)
