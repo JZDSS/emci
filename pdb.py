@@ -106,10 +106,23 @@ def main():
             aligned.append(np.reshape(curr@t, (-1)))
         joblib.dump(transform_matrix, 'cache/transform_matrix.pkl', compress=3)
         joblib.dump(aligned, 'cache/aligned.pkl', compress=3)
-    temp = (aligned - np.mean(aligned, axis=0))
+    m = np.mean(aligned, axis=0)
+    temp = aligned - m
     covariance = 1.0 / len(aligned) * temp.T.dot(temp)
     U, S, V = np.linalg.svd(covariance)
     joblib.dump(U, 'cache/u.pkl', compress=3)
+
+    aligned = []
+    for i in range(len(filenames)):
+        i += 1
+        curr = norm_landmarks[i, :]
+        one = np.ones(shape=(106, 1))
+        curr = np.concatenate((curr, one), axis=1)
+        t = procrustes(curr, mean_landmarks)
+        transform_matrix.append(t)
+        aligned.append(np.reshape(curr @ t, (-1)))
+
+    temp = aligned - m
     pc = temp.dot(U[:, 0])
 
     plt.hist(pc,bins=11)
