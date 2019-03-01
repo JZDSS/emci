@@ -56,7 +56,7 @@ class SoftBoundaryLoss(BoundaryLoss):
         y = (k * suppressed) ** self.alpha
         v = (k * self.threshold) ** self.alpha
         loss = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
-        self.update(y.cpu().data.numpy())
+        self.update(loss.cpu().data.numpy())
 
         return loss
 
