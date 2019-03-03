@@ -14,7 +14,7 @@ class BBoxDataset(FaceDataset):
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
                  shape=(224, 224),
-                 img_format='png'):
+                 img_format=None):
         super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape, img_format)
         self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
 

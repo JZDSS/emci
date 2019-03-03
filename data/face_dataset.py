@@ -14,7 +14,7 @@ class FaceDataset(Dataset):
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
                  shape=(224, 224),
-                 img_format='jpg'):
+                 img_format=None):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -63,12 +63,15 @@ class FaceDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, item):
-
-        img_path = self.images[item]
-        image = cv2.imread(img_path)
-        landmark_path = self.landmarks[item]
-        landmarks = utils.read_mat(landmark_path)
-        return image, landmarks
+        while True:
+            try:
+                img_path = self.images[item]
+                image = cv2.imread(img_path)
+                landmark_path = self.landmarks[item]
+                landmarks = utils.read_mat(landmark_path)
+                return image, landmarks
+            except:
+                item += 1
 
 
 if __name__ == '__main__':
