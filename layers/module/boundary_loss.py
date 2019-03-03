@@ -47,15 +47,17 @@ class SoftBoundaryLoss(BoundaryLoss):
 
 
     def forward(self, prediction, target):
-        if self.zero is None:
-            self.zero = torch.zeros_like(target)
+        # if self.zero is None:
+        #     self.zero = torch.zeros_like(target)
 
         x = torch.abs(prediction - target)
-        suppressed = torch.where(x < self.threshold, x, self.zero)
-        k = self.c * self.threshold ** self.d
-        y = (k * suppressed) ** self.alpha
-        v = (k * self.threshold) ** self.alpha
-        loss = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
+        # suppressed = torch.where(x < self.threshold, x, self.zero)
+        suppressed = self.threshold**(1 - self.alpha) * x ** self.alpha / self.alpha
+        loss = torch.where(x < self.threshold, suppressed, x + (1 / self.alpha - 1) * self.threshold).sum(dim=1).mean()
+        # k = self.c * self.threshold ** self.d
+        # y = (k * suppressed) ** self.alpha
+        # v = (k * self.threshold) ** self.alpha
+        # loss = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
         self.update(loss.cpu().data.numpy())
 
         return loss
