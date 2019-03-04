@@ -13,7 +13,8 @@ class BoundaryLoss(nn.Module):
 
     def __init__(self, threshold=5e-2, threshold_decay=0.99):
         super(BoundaryLoss, self).__init__()
-        self.threshold = threshold
+        self.threshold = torch.nn.Parameter(torch.tensor(threshold).cuda())
+        self.threshold.requires_grad = False
         self.threshold_decay = threshold_decay
         self.count = 0
 
@@ -22,23 +23,23 @@ class BoundaryLoss(nn.Module):
         pass
 
     def update(self, loss):
-        if loss < self.threshold * 0.1:
+        if loss < self.threshold.item() * 0.1:
             self.count += 1
         else:
             self.count -= 1
 
         if self.count == 3:
             self.threshold *= self.threshold_decay
-            logging.info("threshold update: %e" % self.threshold)
+            # logging.info("threshold update: %e" % self.threshold)
             self.count = 0
         elif self.count == -1:
             self.threshold /= self.threshold_decay
-            logging.info("threshold update: %e" % self.threshold)
+            # logging.info("threshold update: %e" % self.threshold)
             self.count = 0
 
 
 class SoftBoundaryLoss(BoundaryLoss):
-    def __init__(self, alpha=100, threshold=5e-2, threshold_decay=0.99):
+    def __init__(self, alpha=10, threshold=0.1, threshold_decay=0.99):
         super(SoftBoundaryLoss, self).__init__(threshold, threshold_decay)
         self.alpha = alpha
         self.c = alpha ** -(1 / alpha)
@@ -47,17 +48,12 @@ class SoftBoundaryLoss(BoundaryLoss):
 
 
     def forward(self, prediction, target):
-        # if self.zero is None:
-        #     self.zero = torch.zeros_like(target)
 
         x = torch.abs(prediction - target)
-        # suppressed = torch.where(x < self.threshold, x, self.zero)
-        suppressed = self.threshold**(1 - self.alpha) * x ** self.alpha / self.alpha
+
+        suppressed = self.threshold ** (1 - self.alpha) * x ** self.alpha / self.alpha
         loss = torch.where(x < self.threshold, suppressed, x + (1 / self.alpha - 1) * self.threshold).sum(dim=1).mean()
-        # k = self.c * self.threshold ** self.d
-        # y = (k * suppressed) ** self.alpha
-        # v = (k * self.threshold) ** self.alpha
-        # loss = torch.where(x < self.threshold, y, x + v - self.threshold).sum(dim=1).mean()
+
         self.update(loss.cpu().data.numpy())
 
         return loss
@@ -94,10 +90,10 @@ class BoundaryLossN(nn.Module):
             loss = HardBoundaryLoss
         else:
             raise RuntimeError('Unknown loss type!!')
-        self.bloss = []
+        bloss = []
         for i in range(106):
-            self.bloss.append(loss(**kwargs))
-
+            bloss.append(loss(**kwargs))
+        self.bloss = torch.nn.ModuleList(bloss)
     def forward(self, prediction, target):
         loss = 0
         for j, i in enumerate(list(range(0, 212, 2))):
