@@ -2,7 +2,7 @@ import torch.nn as nn
 from torchvision.models import densenet
 import torch.utils.model_zoo as model_zoo
 import re
-from models.saver import Saver
+from models.saver import Saver_
 
 
 class Dense201(densenet.DenseNet):
@@ -11,7 +11,6 @@ class Dense201(densenet.DenseNet):
                          num_classes=num_classes, **kwargs)
         if pretrained:
             pretrained_dict = dict(model_zoo.load_url(densenet.model_urls['densenet201']))
-            print(pretrained_dict.keys())
             del pretrained_dict['classifier.weight']
             del pretrained_dict['classifier.bias']
             model_dict = self.state_dict()
@@ -28,7 +27,7 @@ class Dense201(densenet.DenseNet):
             self.load_state_dict(model_dict)
         self.sigmoid = nn.Sigmoid()
         if not ckpt is None:
-            saver = Saver(ckpt, 'model')
+            saver = Saver_(ckpt, 'model')
             saver.load_last_ckpt(self)
 
     def forward(self, x):

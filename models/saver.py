@@ -1,8 +1,10 @@
 import os
 import torch
 import logging
+import glob
 
-class Saver:
+
+class Saver_:
     def __init__(self, dir, model_name='model', max_keep=None):
         """
         :param dir: 模型保存路径
@@ -27,13 +29,14 @@ class Saver:
         os.rename(path + '.tmp', path)
 
     def last_ckpt(self):
-        names = os.listdir(self.dir)
+        names = glob.glob(os.path.join(self.dir, '%s-*.pth' % self.model_name))
         if not names:
             return None
         if 'tmp' in names[-1]:
             del names[-1]
         if not names:
             return None
+        names = [os.path.basename(n) for n in names]
         idx = [int(name.split('.')[0].split('-')[-1]) for name in names]
         max_idx = max(idx)
         return '%s-%d.pth' % (self.model_name, max_idx)
@@ -43,8 +46,45 @@ class Saver:
         model.load_state_dict(state_dict)
 
     def load_last_ckpt(self, model):
-        path = os.path.join(self.dir, self.last_ckpt())
+        name = self.last_ckpt()
+        if name is None:
+            return
+        path = os.path.join(self.dir, name)
         if path is None:
             logging.warning("No existed checkpoint found!")
         state_dict = torch.load(path)
         model.load_state_dict(state_dict)
+
+
+class Saver:
+    def __init__(self, dir, keys, max_keep=None):
+        self.keys = keys
+        self.s = {}
+        for k in keys:
+            self.s[k] = Saver_(dir, k, max_keep)
+
+    def save(self, state, i):
+        for k in self.keys:
+            self.s[k].save(state[k], i)
+
+    def load(self, model_dic, iter):
+        for k in model_dic.keys():
+            file = self.s[k].model_name + '-%d.pth' % iter
+            self.s[k].load(model_dic[k], file)
+
+    def load_last_ckpt(self, model_dic):
+        for k, v in model_dic.items():
+            self.s[k].load_last_ckpt(v)
+
+
+if __name__ == '__main__':
+    from models.dense201 import Dense201
+    s = Saver('../exp/soft10boundaryN-align-j3-test/ckpt', ['model', 'opt'])
+    net = Dense201()
+    opt = torch.optim.Adam(net.parameters())
+    # s.load({'model': net,
+    #         'opt': opt}, 3800)
+    s.load_last_ckpt({'model': net,
+                      'opt': opt})
+
+    print(s.last_iter())

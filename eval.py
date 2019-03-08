@@ -3,7 +3,7 @@ import os
 import torch
 from torch.utils.data import DataLoader
 from sparse import loss
-from models.saver import Saver
+from models.saver import Saver_
 from models.dense201 import Dense201
 from tensorboardX import SummaryWriter
 import numpy as np
@@ -35,8 +35,9 @@ criterion = loss.get_criterion(cfg.loss)
 # criterion = WingLoss(10, 2)
 #PATH = './ckpt'
 # a = BBoxDataset('/data/icme/crop/data/picture',
-#                     '/data/icme/crop/data/landmark',
-#                     '/data/icme/valid', phase='eval')
+#                 '/data/icme/crop/data/landmark',
+#                 '/data/icme/valid', phase='eval',
+#                 img_format='png')
 a = AlignDataset('/data/icme/crop/data/picture',
                  '/data/icme/crop/data/landmark',
                  '/data/icme/crop/data/pred_landmark',
@@ -48,8 +49,8 @@ a = AlignDataset('/data/icme/crop/data/picture',
                  )
 batch_iterator = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
 #Saver.dir=PATH
-saver = Saver(os.path.join(cfg.root, 'ckpt'), 'model')
-saver2 = Saver(os.path.join(cfg.root, 'snapshot'), 'model')
+saver = Saver_(os.path.join(cfg.root, 'ckpt'), 'model')
+saver2 = Saver_(os.path.join(cfg.root, 'snapshot'), 'model')
 current = None
 net.eval()
 batch_size = 4

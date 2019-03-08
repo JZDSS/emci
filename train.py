@@ -48,8 +48,7 @@ if __name__ == '__main__':
 
     writer = SummaryWriter(os.path.join(cfg.root, 'logs/train'))
     net = Dense201(num_classes=212)
-    if cfg.device == all_pb2.GPU:
-        net = net.cuda()
+
     # a = BBoxDataset('/data/icme/crop/data/picture',
     #                 '/data/icme/crop/data/landmark',
     #                 '/data/icme/train',
@@ -68,21 +67,23 @@ if __name__ == '__main__':
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)
+    if cfg.device == all_pb2.GPU:
+        net = net.cuda()
+        criterion = criterion.cuda()
     # criterion = WingLoss(10, 2)
     optimizer = optim.Adam(net.parameters(), lr=0, weight_decay=cfg.weight_decay)
     # optimizer = optim.SGD(net.parameters(), lr=0, weight_decay=cfg.weight_decay, momentum=0.9)
-    saver = Saver(os.path.join(cfg.root, 'ckpt'), 'model', 10)
-    opt_saver = Saver(os.path.join(cfg.root, 'opt_ckpt'), 'opt', 10)
-    last = saver.last_ckpt()
-    start_iter = 0 if last is None else int(last.split('.')[0].split('-')[-1])
-    if start_iter > 0:
-        saver.load(net, last)
-        try:
-            opt_saver.load(optimizer, opt_saver.last_ckpt())
-        except:
-            pass
-        lr_gen.set_global_step(start_iter)
+    saver = Saver(os.path.join(cfg.root, 'ckpt'), ['model', 'opt', 'crit'], 10)
+    start_iter = saver.s['model'].last_ckpt()
 
+    if not start_iter is None:
+        start_iter = int(start_iter.split('.')[0].split('-')[1])
+        saver.load_last_ckpt({'model': net,
+                              'crit': criterion,
+                              'opt': optimizer})
+        lr_gen.set_global_step(start_iter)
+    else:
+        start_iter = 0
     running_loss = 0.0
     batch_size = cfg.batch_size
     epoch_size = len(a) // batch_size
@@ -128,9 +129,11 @@ if __name__ == '__main__':
 
             writer.add_image("result", image, iteration)
             writer.add_histogram("predictionx", out.cpu().data.numpy()[:, 0:212:2], iteration)
-            state = net.state_dict()
-            saver.save(state, iteration)
-            state = optimizer.state_dict()
-            opt_saver.save(state, iteration)
+            model_state = net.state_dict()
+            opt_state = optimizer.state_dict()
+            crit_state = criterion.state_dict()
+            saver.save({'model': model_state,
+                        'crit': crit_state,
+                        'opt': opt_state}, iteration)
             metrics.clear()
 
