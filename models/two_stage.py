@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 import cv2
 
 class TwoStage(nn.Module):
-    def __init__(self, align):
+    def __init__(self, align,
+                 ckpt1='exp/soft10boundaryN-bbox2/snapshot',
+                 ckpt2='exp/soft10boundaryN-align-j0/snapshot'):
         super(TwoStage, self).__init__()
-        self.first = dense201.Dense201(ckpt='exp/wing2_5_13-bbox/snapshot')
-        self.second = dense201.Dense201(ckpt='exp/wing2_5_13-align-j3-m0_2_0_1-2/snapshot')
+        self.first = dense201.Dense201(ckpt=ckpt1)
+        self.second = dense201.Dense201(ckpt=ckpt2)
         self.align = align
         self.shape = (224, 224)
 
