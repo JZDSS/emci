@@ -9,9 +9,12 @@ import cv2
 import os
 from torch.utils.data import DataLoader
 from utils.alignment import Align
+import sys
+curr = sys.path[0]
 
-
-net = two_stage.TwoStage(Align('cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1))).cuda()
+net = two_stage.TwoStage(Align(os.path.join(curr, 'weights/mean_landmarks.pkl'), (224, 224), (0.2, 0.1)),
+                         os.path.join(curr, 'weights/1'),
+                         os.path.join(curr, 'weights/2')).cuda()
 
 #PATH = './ckpt'
 a = OriginalDataset('/data/icme/crop/data/picture',
@@ -37,11 +40,10 @@ for i in range(len(a)):
 
     with torch.no_grad():
         pr = net.forward(image, bbox)
-
     all_pr.append(pr)
     all_gt.append(gt)
     # save prediction
-    utils.save_landmarks(pr, os.path.join(save_dir, name[0] + '.txt'))
+    utils.save_landmarks(pr, os.path.join(save_dir, name + '.txt'))
 
 all_gt = np.stack(all_gt, axis=0)
 all_pr = np.stack(all_pr, axis=0)
