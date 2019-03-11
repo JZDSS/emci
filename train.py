@@ -49,21 +49,21 @@ if __name__ == '__main__':
     writer = SummaryWriter(os.path.join(cfg.root, 'logs/train'))
     net = Dense201(num_classes=212)
 
-    # a = BBoxDataset('/data/icme/crop/data/picture',
-    #                 '/data/icme/crop/data/landmark',
-    #                 '/data/icme/train',
-    #                 max_jitter=0)
-    a = AlignDataset('/data/icme/crop/data/picture',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/crop/data/landmark',
-                     '/data/icme/train',
-                     Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-                           ),# idx=list(range(51, 66))),
-                     flip=True,
-                     max_jitter=0,
-                     max_radian=0
-                     # ldmk_ids=list(range(51, 66))
-                     )
+    a = BBoxDataset('/data/icme/crop/data/picture',
+                    '/data/icme/crop/data/landmark',
+                    '/data/icme/train',
+                    max_jitter=0)
+    # a = AlignDataset('/data/icme/crop/data/picture',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/crop/data/landmark',
+    #                  '/data/icme/train',
+    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
+    #                        ),# idx=list(range(51, 66))),
+    #                  flip=True,
+    #                  max_jitter=0,
+    #                  max_radian=0
+    #                  # ldmk_ids=list(range(51, 66))
+    #                  )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = loss.get_criterion(cfg.loss)
@@ -91,8 +91,13 @@ if __name__ == '__main__':
     for iteration in range(start_iter, cfg.max_iter + 1):
         if iteration % epoch_size == 0:
             # create batch iterator
+            a = BBoxDataset('/data/icme/crop/data/picture',
+                            '/data/icme/crop/data/landmark',
+                            '/data/icme/train',
+                            max_jitter=0)
             batch_iterator = iter(DataLoader(a, batch_size,
                                                   shuffle=True, num_workers=4))
+            epoch_size = len(a) // batch_size
             epoch += 1
 
         lr = adjust_learning_rate(optimizer)
@@ -110,7 +115,11 @@ if __name__ == '__main__':
         loss.backward()
         optimizer.step()
         # criterion.update(loss.cpu().data.numpy())
-        if iteration % 100 == 0:
+        if iteration % 200 == 0:
+            net.eval()
+            out = net(images)
+            net.train()
+
             image = images.cpu().data.numpy()[0]
             gt = landmarks.cpu().data.numpy()
             pr = out.cpu().data.numpy()
