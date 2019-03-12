@@ -13,13 +13,13 @@ class BBoxDataset(FaceDataset):
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
                  shape=(224, 224),
-                 max_jitter=30,
-                 max_rand=30,
+                 max_jitter=0,
+                 max_angle=0,
                  img_format=None):
         super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape, img_format)
         # self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
         self.max_jitter = max_jitter
-        self.max_rand = max_rand / 180 * np.pi
+        self.max_rand = max_angle / 180 * np.pi
 
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
@@ -100,6 +100,8 @@ class BBoxDataset(FaceDataset):
             image = utils.random_color(image)
 
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
+        landmarks[:, 0] /= self.shape[1]
+        landmarks[:, 1] /= self.shape[0]
         return image, np.reshape(landmarks, (-1))
 
 
