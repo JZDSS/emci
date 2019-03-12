@@ -20,12 +20,14 @@ class BBoxDataset(FaceDataset):
         # self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
         self.max_jitter = max_jitter
         self.max_rand = max_angle / 180 * np.pi
-
+        self.idx = [32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
+                    11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 46, 45, 44, 43, 42, 50, 49, 48, 47, 37, 36,
+                    35, 34, 33, 41, 40, 39, 38, 51, 52, 53, 54, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56,
+                    55, 79, 78, 77, 76, 75, 82, 81, 80, 83, 70, 69, 68, 67, 66, 73, 72, 71, 74, 90, 89,
+                    88, 87, 86, 85, 84, 95, 94, 93, 92, 91, 100, 99, 98, 97, 96, 103, 102, 101, 105, 104]
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
-
         H, W, _ = image.shape
-        # landmarks /= [W, H]
         resize = \
             np.array([
                 [self.shape[0] / W, 0, 0],
@@ -50,6 +52,7 @@ class BBoxDataset(FaceDataset):
                         [0, 1, 0],
                         [0, 0, 1]],
                         dtype=np.float32)
+                landmarks = landmarks[self.idx]
             else:
                 flip = np.identity(3, np.float32)
             center = \
@@ -89,7 +92,6 @@ class BBoxDataset(FaceDataset):
             T = translate @ rotation @ flip @ resize
         else:
             T = resize
-
 
         image = cv2.warpAffine(image, T[:2, :], self.shape)
         ones = np.ones(len(landmarks), dtype=np.float32)
