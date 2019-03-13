@@ -51,8 +51,8 @@ if __name__ == '__main__':
 
     a = BBoxDataset('/data/icme/crop/data/picture',
                     '/data/icme/crop/data/landmark',
-                    '/data/icme/train',
-                    max_jitter=0)
+                    '/data/icme/train', phase='train',
+                    max_jitter=30, max_angle=30)
     # a = AlignDataset('/data/icme/crop/data/picture',
     #                  '/data/icme/crop/data/landmark',
     #                  '/data/icme/crop/data/landmark',
@@ -94,7 +94,7 @@ if __name__ == '__main__':
             a = BBoxDataset('/data/icme/crop/data/picture',
                             '/data/icme/crop/data/landmark',
                             '/data/icme/train',
-                            max_jitter=0)
+                            max_jitter=30, max_angle=30)
             batch_iterator = iter(DataLoader(a, batch_size,
                                                   shuffle=True, num_workers=4))
             epoch_size = len(a) // batch_size

@@ -36,8 +36,7 @@ criterion = loss.get_criterion(cfg.loss)
 #PATH = './ckpt'
 a = BBoxDataset('/data/icme/crop/data/picture',
                 '/data/icme/crop/data/landmark',
-                '/data/icme/valid', phase='eval',
-                img_format='png')
+                '/data/icme/valid', phase='eval')
 # a = AlignDataset('/data/icme/crop/data/picture',
 #                  '/data/icme/crop/data/landmark',
 #                  '/data/icme/crop/data/pred_landmark',
