@@ -20,15 +20,11 @@ class BBoxDataset(FaceDataset):
 
     def __getitem__(self, item):
         image, landmarks = super(BBoxDataset, self).__getitem__(item)
-
-        bbox = [0, 0, image.shape[1] - 1, image.shape[0] - 1]
-
-        minx, miny, maxx, maxy = bbox
-        image = image[miny:maxy + 1, minx:maxx + 1, :]
+        shape = np.array(image.shape)
         image = cv2.resize(image, self.shape)
 
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
-        return image, np.reshape(landmarks, (-1)), np.array(bbox), self.file_list[item]
+        return image, np.reshape(landmarks, (-1)), shape, self.file_list[item]
 
 
 if __name__ == '__main__':

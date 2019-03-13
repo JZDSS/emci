@@ -13,8 +13,7 @@ class FaceDataset(Dataset):
                  bin_dir,
                  bins=[1,2,3,4,5,6,7,8,9,10,11],
                  phase='train',
-                 shape=(224, 224),
-                 img_format=None):
+                 shape=(224, 224)):
         """
         :param root_dir: icme文件夹路径，见README
         :param bin_dir:  train或者valid文件夹路径，见README
@@ -55,28 +54,25 @@ class FaceDataset(Dataset):
         self.file_list = file_list
         self.images = [os.path.join(img_dir, f) for f in file_list]
         self.landmarks = [os.path.join(ldmk_dir, f + '.txt') for f in file_list]
-        if img_format == 'png':
-            self.images = [i.replace('.jpg', '.png') for i in self.images]
-
+        self.quality = [70, 75, 80, 85, 90, 95, 100]
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, item):
-        while True:
-            try:
-                img_path = self.images[item]
-                image = cv2.imread(img_path)
-                landmark_path = self.landmarks[item]
-                landmarks = utils.read_mat(landmark_path)
-                return image, landmarks
-            except:
-                item += 1
+
+        q = self.quality[np.random.randint(0, 7)] if self.phase == 'train' else 100
+        img_path = self.images[item].replace('.jpg', '_q%d.jpg'%q)
+        image = cv2.imread(img_path)
+        landmark_path = self.landmarks[item]
+        landmarks = utils.read_mat(landmark_path)
+        return image, landmarks
+
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    a = FaceDataset("/data/icme/data/picture", '/data/icme/data/landmark', "/data/icme/train")
+    a = FaceDataset("/data/icme/crop/data/picture", '/data/icme/crop/data/landmark', "/data/icme/train")
     b = iter(DataLoader(a, batch_size=4, shuffle=True, num_workers=4))
     while True:
         images, landmarks = next(b)

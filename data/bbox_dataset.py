@@ -14,9 +14,8 @@ class BBoxDataset(FaceDataset):
                  phase='train',
                  shape=(224, 224),
                  max_jitter=0,
-                 max_angle=0,
-                 img_format=None):
-        super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape, img_format)
+                 max_angle=0):
+        super(BBoxDataset, self).__init__(img_dir, ldmk_dir, bin_dir, bins, phase, shape)
         # self.bboxes = [os.path.join(bbox_dir, f + '.rect') for f in self.file_list]
         self.max_jitter = max_jitter
         self.max_rand = max_angle / 180 * np.pi
@@ -110,8 +109,7 @@ class BBoxDataset(FaceDataset):
 if __name__ == '__main__':
     a = BBoxDataset('/data/icme/crop/data/picture',
                     '/data/icme/crop/data/landmark',
-                    '/data/icme/train',
-                    img_format='png')
+                    '/data/icme/train')
     import matplotlib.pyplot as plt
     for i in range(100):
         image, landmark = a.__getitem__(i)
