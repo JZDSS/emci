@@ -44,10 +44,10 @@ class SoftBoundaryLoss(BoundaryLoss):
         self.alpha = alpha
         self.c = alpha ** -(1 / alpha)
         self.d = (1 / self.alpha - 1)
-        self.zero = None
 
 
     def forward(self, prediction, target):
+
 
         x = torch.abs(prediction - target)
 
@@ -98,4 +98,20 @@ class BoundaryLossN(nn.Module):
         loss = 0
         for j, i in enumerate(list(range(0, 212, 2))):
             loss += self.bloss[j](prediction[:, i:i + 2], target[:, i:i+2])
+        return loss
+
+class BoundaryLossMN(nn.Module):
+
+    def __init__(self, version, **kwargs):
+        super(BoundaryLossMN, self).__init__()
+        blossn = []
+        for i in range(11):
+            blossn.append(BoundaryLossN(version, **kwargs))
+        self.blossn = torch.nn.ModuleList(blossn)
+
+    def forward(self, prediction, target, pose):
+        loss = 0
+        for i in range(prediction.shape[0]):
+            po, pr, ta = pose[i:i + 1], prediction[i:i + 1], target[i:i + 1]
+            loss += self.blossn[po](pr, ta)
         return loss
