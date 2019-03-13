@@ -21,7 +21,7 @@ for name in os.listdir(img_dir):
     ldmk_path = os.path.join(ldmk_dir, ldmk_name)
     bbox_path = os.path.join(bbox_dir, bbox_name)
 
-    img_out_path = img_path.replace(root, root + 'crop/').replace('.jpg', '.png')
+    img_out_path = img_path.replace(root, root + 'crop/')
     ldmk_out_path = ldmk_path.replace(root, root + 'crop/')
 
     img = plt.imread(img_path)
@@ -31,9 +31,7 @@ for name in os.listdir(img_dir):
     minx, miny, maxx, maxy = bbox
     ldmk -= [minx, miny]
 
-    img = img[miny:maxy + 1, minx:maxx + 1, :]
+    img = img[miny:maxy, minx:maxx, :]
 
     plt.imsave(img_out_path, img)
     utils.save_landmarks(ldmk, ldmk_out_path)
-
-
