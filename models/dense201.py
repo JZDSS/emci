@@ -1,5 +1,5 @@
 import torch.nn as nn
-from torchvision.models import densenet
+from models import densenet
 import torch.utils.model_zoo as model_zoo
 import re
 from models.saver import Saver_
