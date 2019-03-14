@@ -3,6 +3,7 @@ from models import densenet
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 import re
+import torch
 from models.saver import Saver_
 
 
@@ -36,8 +37,8 @@ class Dense201(densenet.DenseNet):
         features = self.features(x)
         out = F.relu(features, inplace=True)
         out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1)
-        f1 = out[:960]
-        f2 = out[960:]
+        f1 = out[:,:960]
+        f2 = out[:,960:]
         feat1 = torch.cat((f1.detach(), f2), dim=1)
         feat2 = torch.cat((f1, f2.detach()), dim=1)
 
