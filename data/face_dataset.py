@@ -61,7 +61,7 @@ class FaceDataset(Dataset):
 
     def __getitem__(self, item):
 
-        q = self.quality[np.random.randint(0, 7)] if self.phase == 'train' else 70
+        q = self.quality[np.random.randint(0, 7)] if self.phase == 'train' else 95
         img_path = self.images[item].replace('.jpg', '_q%d.jpg'%q)
         image = cv2.imread(img_path)
         landmark_path = self.landmarks[item]
