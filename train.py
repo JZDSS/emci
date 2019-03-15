@@ -12,11 +12,12 @@ from data.align_dataset import AlignDataset
 from sparse import loss, learning_rate
 
 from models.saver import Saver
-from models.dense201 import Dense201
+from models.dense_local import DenseLocal
 from utils.metrics import Metrics
 from utils.alignment import Align
 from proto import all_pb2
 from google.protobuf import text_format
+from layers.module import local_loss
 
 parser = argparse.ArgumentParser(
     description='Landmark Detection Training')
@@ -47,7 +48,7 @@ if __name__ == '__main__':
     metrics = Metrics().add_nme(0.5).add_auc(decay=0.5, step=0.001).add_loss(decay=0.5)
 
     writer = SummaryWriter(os.path.join(cfg.root, 'logs/train'))
-    net = Dense201(num_classes=212)
+    net = DenseLocal(num_classes=212)
 
     a = BBoxDataset('/data/icme/crop/data/picture',
                     '/data/icme/crop/data/landmark',
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     #                  )
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
-    criterion = loss.get_criterion(cfg.loss)
+    criterion = local_loss.LocalLoss()
     if cfg.device == all_pb2.GPU:
         net = net.cuda()
         criterion = criterion.cuda()
@@ -102,15 +103,22 @@ if __name__ == '__main__':
 
         lr = adjust_learning_rate(optimizer)
         # load train data
-        images, landmarks = next(batch_iterator)
+        images, landmarks, mask = next(batch_iterator)
         if cfg.device == all_pb2.GPU:
             images = images.cuda()
             landmarks = landmarks.cuda()
+            mask = mask.cuda()
 
-        out = net(images)
+        out_local, prob_local, out_global, prob_global = net(images)
+
         # backprop
         optimizer.zero_grad()
-        loss = criterion(out, landmarks)
+        loss_coo_local, loss_prob_local_act, loss_prob_local_unact, \
+        loss_coo_global, loss_prob_global = \
+            criterion(out_local, prob_local, out_global, prob_global, landmarks, mask)
+
+        loss = loss_coo_local + loss_prob_local_act + loss_prob_local_unact + \
+               loss_coo_global + loss_prob_global
         # clip_grad_norm_(net.parameters(), 0.5)
         loss.backward()
         optimizer.step()
@@ -130,14 +138,19 @@ if __name__ == '__main__':
             image = image[::-1, ...]
             nme = metrics.nme.update(np.reshape(gt, (-1, gt.shape[1]//2, 2)), np.reshape(pr, (-1, gt.shape[1]//2, 2)))
             metrics.auc.update(nme)
-            metrics.loss.update(loss)
             writer.add_scalar("watch/NME", metrics.nme.value * 100, iteration)
             writer.add_scalar("watch/AUC", metrics.auc.value * 100, iteration)
-            writer.add_scalar("watch/loss", metrics.loss.value, iteration)
             writer.add_scalar("watch/learning_rate", lr, iteration)
 
+            writer.add_scalar('loss/coo_local', loss_coo_local.item(), iteration)
+            writer.add_scalar('loss/prob_local_act', loss_prob_local_act.item(), iteration)
+            writer.add_scalar('loss/prob_local_unact', loss_prob_local_unact.item(), iteration)
+            writer.add_scalar('loss/coo_global', loss_coo_global.item(), iteration)
+            writer.add_scalar('loss/prob_global', loss_prob_global.item(), iteration)
+
+
             writer.add_image("result", image, iteration)
-            writer.add_histogram("predictionx", out.cpu().data.numpy()[:, 0:212:2], iteration)
+            writer.add_histogram("predictionx", out_local.cpu().data.numpy()[:, 0:212:2], iteration)
             model_state = net.state_dict()
             opt_state = optimizer.state_dict()
             crit_state = criterion.state_dict()

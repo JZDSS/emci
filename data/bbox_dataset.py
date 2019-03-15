@@ -100,11 +100,25 @@ class BBoxDataset(FaceDataset):
             image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
             image = utils.random_color(image)
 
+        mask = self.encode(landmarks.copy())
+
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         landmarks[:, 0] /= self.shape[1]
         landmarks[:, 1] /= self.shape[0]
-        return image, np.reshape(landmarks, (-1))
 
+        return image, np.reshape(landmarks, (-1)), mask
+
+    def encode(self, landmarks):
+
+        landmarks /= 32
+        landmarks = landmarks.astype(np.uint8)
+        mask = np.zeros((106, 1, 7, 7), np.float32)
+        for i in range(106):
+            x, y = landmarks[i]
+            x = min(max(x, 0), 6)
+            y = min(max(y, 0), 6)
+            mask[i, 0, y, x] = 1
+        return mask
 
 if __name__ == '__main__':
     a = BBoxDataset('/data/icme/crop/data/picture',
@@ -112,7 +126,7 @@ if __name__ == '__main__':
                     '/data/icme/train')
     import matplotlib.pyplot as plt
     for i in range(100):
-        image, landmark = a.__getitem__(i)
+        image, landmark, mask = a.__getitem__(i)
         image = np.transpose(image, (1, 2, 0))[:, :, ::-1].astype(np.uint8)
         landmark = np.reshape(landmark, [-1, 2])
         plt.imshow(image)

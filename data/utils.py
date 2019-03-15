@@ -93,11 +93,11 @@ def draw_landmarks(image, landmarks, color):
     return np.transpose(image, (2, 0, 1))
 
 
-def random_flip(img, landmark, prob):
+def random_flip(img, landmark, prob, max_x=1):
     a = np.random.uniform(0,1,1)
     if a < prob:
         img = cv2.flip(img,1)
-        landmark = landmark_flip(landmark)
+        landmark = landmark_flip(landmark, max_x)
     return img, landmark
 
 
@@ -125,15 +125,15 @@ def random_gamma_trans(img, gamma_vari):
 def random_color(img):
     img = Image.fromarray(img)
 
-    random_factor = np.random.uniform(0.5, 1.5)
+    random_factor = np.random.uniform(0.8, 1.2)
     color_img = ImageEnhance.Color(img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.5, 1.5)
+    random_factor = np.random.uniform(0.8, 1.2)
     brightness_img = ImageEnhance.Brightness(color_img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.5, 1.5)
+    random_factor = np.random.uniform(0.8, 1.2)
     contrast_img = ImageEnhance.Contrast(brightness_img).enhance(random_factor)
 
-    random_factor = np.random.uniform(0.5, 1.5)
+    random_factor = np.random.uniform(0.8, 1.2)
     sharpness_img = ImageEnhance.Sharpness(contrast_img).enhance(random_factor)
     return np.array(sharpness_img)

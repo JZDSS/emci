@@ -2,9 +2,9 @@ import os
 # os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 import torch
 from torch.utils.data import DataLoader
-from sparse import loss
+# from sparse import loss
 from models.saver import Saver_
-from models.dense201 import Dense201
+from models.dense_local import DenseLocal
 from tensorboardX import SummaryWriter
 import numpy as np
 from utils.metrics import Metrics
@@ -27,11 +27,11 @@ with open(args.config, "r") as f:
     proto_str = f.read()
     text_format.Merge(proto_str, cfg)
 
-net = Dense201(num_classes=212)
+net = DenseLocal(num_classes=212)
 if cfg.device == all_pb2.GPU:
     net = net.cuda()
 
-criterion = loss.get_criterion(cfg.loss)
+# criterion = loss.get_criterion(cfg.loss)
 # criterion = WingLoss(10, 2)
 #PATH = './ckpt'
 a = BBoxDataset('/data/icme/crop/data/picture',
@@ -52,10 +52,10 @@ saver = Saver_(os.path.join(cfg.root, 'ckpt'), 'model')
 saver2 = Saver_(os.path.join(cfg.root, 'snapshot'), 'model')
 current = None
 net.eval()
-batch_size = 4
+batch_size = 1
 epoch_size = len(a) // batch_size
 writer = SummaryWriter(os.path.join(cfg.root, 'logs/valid'))
-metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss(decay=0.9)
+metrics = Metrics().add_nme(0.9).add_auc(decay=0.9).add_loss()
 while True:
     if current == saver.last_ckpt():
         time.sleep(1)
@@ -75,19 +75,19 @@ while True:
         gt = None
         pr = None
         for iteration in range(40):
-            images, landmarks = next(batch_iterator)
+            images, landmarks, _ = next(batch_iterator)
             if cfg.device == all_pb2.GPU:
                 images = images.cuda()
                 landmarks = landmarks.cuda()
             with torch.no_grad():
                 out = net.forward(images)
 
-            loss = criterion(out, landmarks)
+            # loss = criterion(out, landmarks)
             pr = out.cpu().data.numpy()
             gt = landmarks.cpu().data.numpy()
             nme = metrics.nme.update(np.reshape(gt, (-1, gt.shape[1]//2, 2)), np.reshape(pr, (-1, gt.shape[1]//2, 2)))
             metrics.auc.update(nme)
-            metrics.loss.update(loss.item())
+            # metrics.loss.update(loss.item())
         image = images.cpu().data.numpy()[0]
         # 绿色的真实landmark
         image = draw_landmarks(image, gt[0], (0, 255, 0))
@@ -96,7 +96,6 @@ while True:
         image = image[::-1, ...]
         writer.add_scalar("watch/NME", metrics.nme.value * 100, current_iter)
         writer.add_scalar("watch/AUC", metrics.auc.value * 100, current_iter)
-        writer.add_scalar("watch/loss", metrics.loss.value, current_iter)
         writer.add_image("result", image, current_iter)
 
         metrics.clear()
