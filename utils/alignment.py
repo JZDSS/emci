@@ -61,8 +61,8 @@ class Align(object):
         # reference[: 0] += noise[0]
         # reference[:, 1] += noise[1]
         T = pdb.procrustes(x, reference)
-        rotate = np.array([[np.cos(radian), np.sin(radian), 0],
-                           [-np.sin(radian), np.cos(radian), 0],
+        rotate = np.array([[np.cos(radian), -np.sin(radian), 0],
+                           [np.sin(radian), np.cos(radian), 0],
                            [0, 0, 1]], dtype=np.float32)
 
         T = np.c_[T, np.array([0, 0, 1], dtype=np.float32)]
