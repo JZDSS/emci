@@ -68,7 +68,17 @@ class FaceDataset(Dataset):
         landmarks = utils.read_mat(landmark_path)
         return image, landmarks
 
+    def encode(self, landmarks):
 
+        landmarks /= 32
+        landmarks = landmarks.astype(np.uint8)
+        mask = np.zeros((106, 1, 7, 7), np.float32)
+        for i in range(106):
+            x, y = landmarks[i]
+            x = min(max(x, 0), 6)
+            y = min(max(y, 0), 6)
+            mask[i, 0, y, x] = 1
+        return mask
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt

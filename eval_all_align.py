@@ -1,7 +1,7 @@
 from data._align_dataset import AlignDataset
 import torch
-from models.saver import Saver
-from models import dense201
+from models.saver import Saver_
+from models import dense_local
 from models import resnet18
 import numpy as np
 from utils.metrics import Metrics
@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from utils.alignment import Align
 
 
-net = dense201.Dense201().cuda()
+net = dense_local.DenseLocal().cuda()
 
 #PATH = './ckpt'
 a = AlignDataset('/data/icme/crop/data/picture',
@@ -25,13 +25,13 @@ a = AlignDataset('/data/icme/crop/data/picture',
                  # ldmk_ids=list(range(51, 66))
                  )
 #Saver.dir=PATH
-saver = Saver('exp/wing2_5_13-align-j3-m0_2_0_1-2/snapshot', 'model')
+saver = Saver_('exp/localcontext-align/snapshot', 'model')
 current = None
 net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'model-65000.pth'
+model_name = 'model-150000.pth'
 saver.load(net, model_name)
 
 

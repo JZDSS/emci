@@ -1,5 +1,5 @@
 from torch import nn
-from models import dense201
+from models import dense_local
 import numpy as np
 from data import utils
 import torch
@@ -11,8 +11,8 @@ class TwoStage(nn.Module):
                  ckpt1='exp/soft10boundaryN-bbox2/snapshot',
                  ckpt2='exp/soft10boundaryN-align-j0/snapshot'):
         super(TwoStage, self).__init__()
-        self.first = dense201.Dense201(ckpt=ckpt1)
-        self.second = dense201.Dense201(ckpt=ckpt2)
+        self.first = dense_local.DenseLocal(ckpt=ckpt1)
+        self.second = dense_local.DenseLocal(ckpt=ckpt2)
         self.align = align
         self.shape = (224, 224)
 

@@ -18,16 +18,16 @@ class AlignDataset(FaceDataset):
                  flip=True,
                  ldmk_ids=[i for i in range(106)],
                  max_jitter=3,
-                 max_radian=0,
+                 max_angle=0,
                  img_format=None):
-        super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape, img_format)
+        super(AlignDataset, self).__init__(img_dir, gt_ldmk_dir, bin_dir, bins, phase, shape)
         self.aligner = aligner
         self.algin_ldmk = [os.path.join(al_ldmk_dir, f + '.txt') for f in self.file_list]
         self.ldmk_ids = ldmk_ids
         if phase == 'train':
             self.flip = flip
             self.max_jitter = max_jitter
-            self.max_radian = max_radian
+            self.max_radian = max_angle * np.pi / 180
         else:
             self.flip = False
             self.max_jitter = 0
@@ -45,6 +45,7 @@ class AlignDataset(FaceDataset):
         # start_x = np.random.randint(0, self.aligner.scale[1] - self.shape[1] + 1)
         # landmarks[:, 0] -= start_x
         # landmarks[:, 1] -= start_y
+        mask = self.encode(landmarks.copy())
         landmarks[:, 0] /= self.shape[1]
         landmarks[:, 1] /= self.shape[0]
         # image = image[start_y:start_y + self.shape[0], start_x :start_x + self.shape[1]]
@@ -57,6 +58,6 @@ class AlignDataset(FaceDataset):
         image = cv2.resize(image, self.shape)
         image = np.transpose(image, (2, 0, 1)).astype(np.float32)
         landmarks = landmarks[self.ldmk_ids, :]
-        return image, np.reshape(landmarks, (-1))
+        return image, np.reshape(landmarks, (-1)), mask
 
 

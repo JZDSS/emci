@@ -18,7 +18,7 @@ a = BBoxDataset('/data/icme/crop/data/picture',
                 '/data/icme/crop/data/landmark',
                 '/data/icme/bbox',
                 '/data/icme/valid',
-                phase='eval',img_format='jpg')
+                phase='eval')
 #Saver.dir=PATH
 saver = Saver_('exp/localcontext/ckpt', 'model')
 current = None
@@ -26,7 +26,7 @@ net.eval()
 
 epoch_size = len(a)
 metrics = Metrics().add_nme().add_auc()
-model_name = 'model-51200.pth'
+model_name = 'model-170000.pth'
 saver.load(net, model_name)
 
 
@@ -39,17 +39,29 @@ batch_iterator = iter(DataLoader(a, batch_size=1, shuffle=False, num_workers=4))
 
 for i in range(len(a)):
     image, gt, shape, name = next(batch_iterator)
-
-    image = image.cuda()
-    with torch.no_grad():
-        pr = net.forward(image)
     shape = shape.data.numpy()[0]
-    pr = pr.cpu().data.numpy()
+    image = image.data.numpy()[0]
+    image = np.transpose(image, (1, 2, 0)).astype(np.uint8)
+    l = [image]
+    for i in range(9):
+        image = utils.random_gamma_trans(image, np.random.uniform(0.8, 1.2, 1))
+        image = utils.random_color(image)
+        l.append(image)
+    prs = []
+    for image in l:
+        image = np.transpose(image, (2, 0, 1))
+        image = np.expand_dims(image, 0).astype(np.float32)
+        image = torch.from_numpy(image).cuda()
+        with torch.no_grad():
+            pr = net.forward(image)
+        pr = pr.cpu().data.numpy()
+
+        pr = np.reshape(pr, (-1, 2))
+        pr[:, 0] *= shape[1]
+        pr[:, 1] *= shape[0]
+        prs.append(pr)
+    pr = np.mean(prs, axis=0)
     gt = gt.data.numpy()
-    pr = np.reshape(pr, (-1, 2))
-    pr[:, 0] *= shape[1]
-    pr[:, 1] *= shape[0]
-    # pr = utils.inv_norm_landmark(np.reshape(pr, (-1, 2)), bbox[0])
     gt = np.reshape(gt, (-1, 2))
     all_pr.append(pr)
     all_gt.append(gt)

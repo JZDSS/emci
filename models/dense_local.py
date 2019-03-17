@@ -1,14 +1,18 @@
 from models import dense201
+from models.saver import Saver_
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
 class DenseLocal(dense201.Dense201):
     def __init__(self, pretrained=True, num_classes=212, ckpt=None, **kwargs):
-        super(DenseLocal, self).__init__(pretrained, num_classes, ckpt, **kwargs)
+        super(DenseLocal, self).__init__(pretrained, num_classes, None, **kwargs)
         self.local = nn.Conv2d(1920, 212, 1)
         self.prob = nn.Conv2d(1920, 212, 1)
         self.prob_global = nn.Linear(1920, 212)
+        if not ckpt is None:
+            saver = Saver_(ckpt, 'model')
+            saver.load_last_ckpt(self)
 
     def forward(self, x):
         features = self.features(x)
