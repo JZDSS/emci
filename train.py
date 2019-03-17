@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from data.utils import draw_landmarks
 from data.bbox_dataset import BBoxDataset
 from data.align_dataset import AlignDataset
-from sparse import loss, learning_rate
+from sparse import losses, learning_rates, datasets
 
 from models.saver import Saver
 from models.dense_local import DenseLocal
@@ -36,7 +36,7 @@ shutil.copy(args.config, cfg.root)
 # config = {0: learning_rate.polynomial_decay(1e-8, 8000, 2e-5),
 #           8001: learning_rate.exponential_decay(2e-5, 500, 0.993)}
 # lr_gen = learning_rate.mix(config)
-lr_gen = learning_rate.get_lr(cfg.lr)
+lr_gen = learning_rates.get_lr(cfg.lr)
 # lr_gen = learning_rate.piecewise_constant([80000], [1e-5, 1e-6])
 def adjust_learning_rate(optimizer):
     lr = lr_gen.get()
@@ -50,21 +50,7 @@ if __name__ == '__main__':
     writer = SummaryWriter(os.path.join(cfg.root, 'logs/train'))
     net = DenseLocal(num_classes=212)
 
-    a = BBoxDataset('/data/icme/crop/data/picture',
-                    '/data/icme/crop/data/landmark',
-                    '/data/icme/train', phase='train',
-                    max_jitter=30, max_angle=30)
-    # a = AlignDataset('/data/icme/crop/data/picture',
-    #                  '/data/icme/crop/data/landmark',
-    #                  '/data/icme/crop/data/landmark',
-    #                  '/data/icme/train',
-    #                  Align('./cache/mean_landmarks.pkl', (224, 224), (0.2, 0.1),
-    #                        ),# idx=list(range(51, 66))),
-    #                  flip=True,
-    #                  max_jitter=0,
-    #                  max_radian=0
-    #                  # ldmk_ids=list(range(51, 66))
-    #                  )
+    a = datasets.get_dataset('train')
     batch_iterator = iter(DataLoader(a, batch_size=cfg.batch_size, shuffle=True, num_workers=4))
 
     criterion = local_loss.LocalLoss()
@@ -92,10 +78,7 @@ if __name__ == '__main__':
     for iteration in range(start_iter, cfg.max_iter + 1):
         if iteration % epoch_size == 0:
             # create batch iterator
-            a = BBoxDataset('/data/icme/crop/data/picture',
-                            '/data/icme/crop/data/landmark',
-                            '/data/icme/train',
-                            max_jitter=30, max_angle=30)
+            a = datasets.get_dataset('train')
             batch_iterator = iter(DataLoader(a, batch_size,
                                                   shuffle=True, num_workers=4))
             epoch_size = len(a) // batch_size
